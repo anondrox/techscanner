@@ -1,4 +1,4 @@
-# 🔍 TechScanner v1.2
+# 🔍 TechScanner v1.3
 
 <div align="center">
 
@@ -8,7 +8,7 @@
 
 **Advanced Technology Detection & Analysis Tool with CVE Vulnerability Scanning**
 
-*Detect 130+ technologies with comprehensive security analysis and CVE vulnerability scanning*
+*Detect 200+ technologies with comprehensive security analysis and CVE vulnerability scanning*
 
 [Features](#features) • [Installation](#installation) • [Usage](#usage) • [CVE Scanning](#cve-vulnerability-scanning) • [License](#license)
 
@@ -19,7 +19,7 @@
 ## 🎯 Features
 
 ### Technology Detection
-- **130+ Technologies** across multiple categories (frameworks, CMS, servers, analytics, payment solutions, security tools, application servers, and more)
+- **200+ Technologies** across multiple categories (frameworks, CMS, servers, analytics, payment solutions, security tools, application servers, headless CMS, monitoring, and more)
 - **7 Detection Methods** for comprehensive coverage:
   - Script source analysis
   - Inline JavaScript scanning
@@ -57,18 +57,19 @@
 
 ## 📋 Technology Categories
 
-- **JavaScript Frameworks**: React, Vue.js, Angular, jQuery, Next.js, Nuxt.js, Svelte, etc.
-- **CSS Frameworks**: Bootstrap, Tailwind CSS, Bulma, Foundation, etc.
-- **CMS Platforms**: WordPress, Drupal, Joomla, Shopify, Magento, Ghost, etc.
-- **Web Servers**: Nginx, Apache, Microsoft IIS, LiteSpeed, Caddy, etc.
-- **Application Servers**: Apache Tomcat, JBoss, WebLogic, WebSphere, GlassFish, Jetty
-- **Programming Languages**: PHP, Java, JSP, ASP.NET, ASP Classic, ColdFusion, Perl, Python
-- **Backend Frameworks**: Express, Django, Flask, Laravel, Ruby on Rails, Spring, FastAPI
-- **Analytics & Marketing**: Google Analytics, Facebook Pixel, Hotjar, Mixpanel, etc.
-- **Payment Solutions**: Stripe, PayPal, Square, Braintree, etc.
-- **Security Tools**: reCAPTCHA, hCaptcha, Cloudflare Turnstile, OpenSSL, etc.
-- **Load Balancers & Proxies**: HAProxy, Cloudflare, Amazon CloudFront, Fastly
-- **And many more...**
+- **JavaScript Frameworks**: React, Vue.js, Angular, jQuery, Next.js, Nuxt.js, Svelte, SvelteKit, Solid.js, Qwik, Remix, Ember.js, Preact, Alpine.js, HTMX, and more
+- **CSS Frameworks**: Bootstrap, Tailwind CSS, Bulma, Foundation, Chakra UI, Ant Design, DaisyUI, etc.
+- **CMS & Headless CMS**: WordPress, Drupal, Joomla, Shopify, Magento, Ghost, Webflow, Strapi, Sanity, Contentful, Payload CMS, Directus, etc.
+- **Web Servers**: Nginx, Apache, Microsoft IIS, LiteSpeed, Caddy, Traefik, Envoy, Jetty
+- **Application Servers**: Apache Tomcat, JBoss, WebLogic, WebSphere, GlassFish
+- **Programming Languages**: PHP, Java, JSP, ASP.NET, ASP Classic, ColdFusion, Perl, Python, Go, Rust, Node.js
+- **Backend Frameworks**: Express.js, Django, Flask, FastAPI, Laravel, Ruby on Rails, Spring, NestJS
+- **Analytics & Marketing**: Google Analytics, Facebook Pixel, Hotjar, Mixpanel, Segment, Amplitude, Plausible, Matomo, HubSpot, etc.
+- **Payment Solutions**: Stripe, PayPal, Square, Braintree, Klarna, Affirm
+- **Security & Auth**: reCAPTCHA, hCaptcha, Cloudflare Turnstile, OpenSSL, Auth0, Clerk, Supabase Auth
+- **Monitoring & Observability**: Sentry, Datadog, New Relic, LogRocket, Bugsnag, Rollbar
+- **Load Balancers, CDNs & Hosting**: HAProxy, Cloudflare, Amazon CloudFront, Fastly, Akamai, Vercel, Netlify, Heroku, AWS, Google Cloud
+- **And many more...** (Build tools, Error tracking, Video players, Social SDKs, etc.)
 
 ---
 
@@ -199,7 +200,7 @@ When you enable CVE scanning with `--cve`, TechScanner:
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
                           WordPress v6.8.3 - 5 CVE(s)                           
-╭─────────────┬─────────┬───────┬──────┬─────────────────────────────────────────╮
+╭─────────────┬─────────┬───────┬──────┼─────────────────────────────────────────╮
 │ CVE ID      │ Severity│ Score │ Pub… │ Description                             │
 ├─────────────┼─────────┼───────┼──────┼─────────────────────────────────────────┤
 │ CVE-2024-?? │ HIGH    │ 7.5   │ 2024 │ SQL injection vulnerability in...       │
@@ -216,11 +217,11 @@ techscanner/
 ├── src/
 │   ├── __init__.py          # Package initialization
 │   ├── detector.py          # Core detection engine
-│   ├── fingerprints.py      # Technology fingerprints database
+│   ├── fingerprints.py      # Technology fingerprints database (200+ entries)
 │   ├── cve_lookup.py        # CVE vulnerability lookup module
 │   └── headers_analyzer.py  # Security header analysis
 ├── pyproject.toml           # Project configuration
-├── requirements.txt         # Python dependencies
+├── requirements.txt           # Python dependencies
 ├── README.md                # This file
 └── replit.md                # Replit-specific documentation
 ```
@@ -305,6 +306,16 @@ For issues, feature requests, or questions:
 
 ## 📝 Changelog
 
+### v1.3 (June 2026)
+- **Major Expansion**: Added 70+ new technology fingerprints for broader coverage
+  - **New Languages**: Go, Rust
+  - **New Frameworks**: SvelteKit, Solid.js, Qwik, Remix, NestJS, Traefik, Envoy
+  - **Headless CMS**: Strapi, Sanity, Contentful, Payload CMS, Directus
+  - **Monitoring**: Datadog, New Relic
+  - **Auth Providers**: Auth0, Clerk, Supabase Auth
+  - **Improved Patterns**: Better detection for existing technologies + new build tools and error tracking
+- **Updated Documentation**: Reflects 200+ technologies
+
 ### v1.2 (November 28, 2025)
 - **Enhanced Technology Detection**: Added 20+ new technology fingerprints
   - Application Servers: Apache Tomcat, JBoss, WebLogic, WebSphere, GlassFish, Jetty
@@ -324,8 +335,6 @@ For issues, feature requests, or questions:
 - Security header grading (A+ to F)
 - Batch processing support
 - Multiple output formats (JSON, CSV)
-
----
 
 <div align="center">
 
