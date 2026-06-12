@@ -9,6 +9,7 @@ FINGERPRINTS = {
                 {"type": "html", "pattern": r"__NEXT_DATA__"},
                 {"type": "script_content", "pattern": r"React\.createElement"},
                 {"type": "script_content", "pattern": r"_react\.default\.createElement"},
+                {"type": "script_content", "pattern": r"ReactDOM\.render|createRoot"},
             ],
             "category": "JavaScript Framework",
             "website": "https://reactjs.org"
@@ -22,6 +23,7 @@ FINGERPRINTS = {
                 {"type": "html", "pattern": r"v-if|v-for|v-bind|v-model"},
                 {"type": "script_content", "pattern": r"Vue\.component"},
                 {"type": "script_content", "pattern": r"new Vue\("},
+                {"type": "script_content", "pattern": r"createApp|Vue\.createApp"},
             ],
             "category": "JavaScript Framework",
             "website": "https://vuejs.org"
@@ -54,6 +56,7 @@ FINGERPRINTS = {
                 {"type": "html", "pattern": r"__NEXT_DATA__"},
                 {"type": "script", "pattern": r"_next/static"},
                 {"type": "header", "pattern": r"x-powered-by", "value": r"Next\.js"},
+                {"type": "script_content", "pattern": r"next/router|next/navigation"},
             ],
             "category": "JavaScript Framework",
             "website": "https://nextjs.org"
@@ -75,6 +78,41 @@ FINGERPRINTS = {
             ],
             "category": "JavaScript Framework",
             "website": "https://svelte.dev"
+        },
+        "SvelteKit": {
+            "patterns": [
+                {"type": "html", "pattern": r"__SVELTEKIT__"},
+                {"type": "script", "pattern": r"_app/immutable|\.svelte-kit"},
+                {"type": "html", "pattern": r"data-sveltekit-"},
+            ],
+            "category": "JavaScript Framework",
+            "website": "https://kit.svelte.dev"
+        },
+        "Solid.js": {
+            "patterns": [
+                {"type": "script", "pattern": r"solid(?:\.min)?\.js"},
+                {"type": "html", "pattern": r"solid-js"},
+                {"type": "script_content", "pattern": r"createSignal|createEffect|createResource"},
+            ],
+            "category": "JavaScript Framework",
+            "website": "https://www.solidjs.com"
+        },
+        "Qwik": {
+            "patterns": [
+                {"type": "html", "pattern": r"qwik"},
+                {"type": "script", "pattern": r"qwik(?:\.min)?\.js|build/q-"},
+                {"type": "script_content", "pattern": r"useSignal|useStore|qwikCity"},
+            ],
+            "category": "JavaScript Framework",
+            "website": "https://qwik.dev"
+        },
+        "Remix": {
+            "patterns": [
+                {"type": "html", "pattern": r"__remixManifest|remix-"},
+                {"type": "script", "pattern": r"@remix-run|remix/router"},
+            ],
+            "category": "JavaScript Framework",
+            "website": "https://remix.run"
         },
         "Ember.js": {
             "patterns": [
@@ -202,6 +240,21 @@ FINGERPRINTS = {
             ],
             "category": "JavaScript Library",
             "website": "https://cryptojs.gitbook.io"
+        },
+        "TanStack Query": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"@tanstack/react-query|useQuery|useMutation"},
+                {"type": "script", "pattern": r"@tanstack/react-query"},
+            ],
+            "category": "JavaScript Library",
+            "website": "https://tanstack.com/query"
+        },
+        "Zustand": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"create\(|zustand"},
+            ],
+            "category": "State Management",
+            "website": "https://zustand-demo.pmnd.rs"
         },
     },
     "css_frameworks": {
@@ -433,6 +486,46 @@ FINGERPRINTS = {
             "category": "Static Site Generator",
             "website": "https://www.11ty.dev"
         },
+        "Strapi": {
+            "patterns": [
+                {"type": "html", "pattern": r"strapi"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Strapi"},
+                {"type": "script_content", "pattern": r"strapi"},
+            ],
+            "category": "Headless CMS",
+            "website": "https://strapi.io"
+        },
+        "Sanity": {
+            "patterns": [
+                {"type": "html", "pattern": r"sanity\.io"},
+                {"type": "script", "pattern": r"@sanity"},
+            ],
+            "category": "Headless CMS",
+            "website": "https://www.sanity.io"
+        },
+        "Contentful": {
+            "patterns": [
+                {"type": "html", "pattern": r"contentful"},
+                {"type": "script", "pattern": r"contentful"},
+            ],
+            "category": "Headless CMS",
+            "website": "https://www.contentful.com"
+        },
+        "Payload CMS": {
+            "patterns": [
+                {"type": "html", "pattern": r"payloadcms|payload"},
+            ],
+            "category": "Headless CMS",
+            "website": "https://payloadcms.com"
+        },
+        "Directus": {
+            "patterns": [
+                {"type": "html", "pattern": r"directus"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Directus"},
+            ],
+            "category": "Headless CMS",
+            "website": "https://directus.io"
+        },
     },
     "server_technologies": {
         "Nginx": {
@@ -619,6 +712,23 @@ FINGERPRINTS = {
             "category": "Programming Language",
             "website": "https://www.python.org"
         },
+        "Go": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"Go-http"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Go"},
+                {"type": "html", "pattern": r"golang|go\.lang"},
+            ],
+            "category": "Programming Language",
+            "website": "https://go.dev"
+        },
+        "Rust": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"Actix|Rocket|Axum"},
+                {"type": "html", "pattern": r"rust|actix-web|rocket"},
+            ],
+            "category": "Programming Language",
+            "website": "https://www.rust-lang.org"
+        },
         "Node.js": {
             "patterns": [
                 {"type": "header", "pattern": r"x-powered-by", "value": r"Express"},
@@ -654,6 +764,20 @@ FINGERPRINTS = {
             ],
             "category": "Web Server",
             "website": "https://caddyserver.com"
+        },
+        "Traefik": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"Traefik"},
+            ],
+            "category": "Load Balancer / Proxy",
+            "website": "https://traefik.io"
+        },
+        "Envoy": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"envoy"},
+            ],
+            "category": "Load Balancer / Proxy",
+            "website": "https://www.envoyproxy.io"
         },
         "HAProxy": {
             "patterns": [
@@ -702,6 +826,14 @@ FINGERPRINTS = {
             ],
             "category": "Backend Framework",
             "website": "https://fastapi.tiangolo.com"
+        },
+        "NestJS": {
+            "patterns": [
+                {"type": "header", "pattern": r"x-powered-by", "value": r"NestJS"},
+                {"type": "script_content", "pattern": r"@nestjs"},
+            ],
+            "category": "Backend Framework",
+            "website": "https://nestjs.com"
         },
         "Spring": {
             "patterns": [
@@ -753,7 +885,7 @@ FINGERPRINTS = {
         "Netlify": {
             "patterns": [
                 {"type": "header", "pattern": r"x-nf-request-id"},
-                {"type": "header", "pattern": r"server", "value": r"Netlify"},
+                {"type": "header", "pattern": r"server", "value": r"Netlify"],
             ],
             "category": "Hosting",
             "website": "https://www.netlify.com"
@@ -867,7 +999,7 @@ FINGERPRINTS = {
         "HubSpot": {
             "patterns": [
                 {"type": "script", "pattern": r"js\.hs-scripts\.com"},
-                {"type": "script", "pattern": r"js\.hubspot\.com"},
+                {"type": "script", "pattern": r"js\.hubspot\.com"],
             ],
             "category": "Marketing",
             "website": "https://www.hubspot.com"
@@ -890,7 +1022,7 @@ FINGERPRINTS = {
         },
         "Drift": {
             "patterns": [
-                {"type": "script", "pattern": r"js\.driftt\.com"},
+                {"type": "script", "pattern": r"js\.driftt\.com"],
             ],
             "category": "Customer Support",
             "website": "https://www.drift.com"
@@ -898,42 +1030,42 @@ FINGERPRINTS = {
         "Zendesk": {
             "patterns": [
                 {"type": "script", "pattern": r"static\.zdassets\.com"},
-                {"type": "html", "pattern": r"zendesk"},
+                {"type": "html", "pattern": r"zendesk"],
             ],
             "category": "Customer Support",
             "website": "https://www.zendesk.com"
         },
         "Crisp": {
             "patterns": [
-                {"type": "script", "pattern": r"client\.crisp\.chat"},
+                {"type": "script", "pattern": r"client\.crisp\.chat"],
             ],
             "category": "Customer Support",
             "website": "https://crisp.chat"
         },
         "Tawk.to": {
             "patterns": [
-                {"type": "script", "pattern": r"embed\.tawk\.to"},
+                {"type": "script", "pattern": r"embed\.tawk\.to"],
             ],
             "category": "Customer Support",
             "website": "https://www.tawk.to"
         },
         "Freshdesk": {
             "patterns": [
-                {"type": "script", "pattern": r"widget\.freshworks\.com"},
+                {"type": "script", "pattern": r"widget\.freshworks\.com"],
             ],
             "category": "Customer Support",
             "website": "https://freshdesk.com"
         },
         "Olark": {
             "patterns": [
-                {"type": "script", "pattern": r"static\.olark\.com"},
+                {"type": "script", "pattern": r"static\.olark\.com"],
             ],
             "category": "Customer Support",
             "website": "https://www.olark.com"
         },
         "LiveChat": {
             "patterns": [
-                {"type": "script", "pattern": r"cdn\.livechatinc\.com"},
+                {"type": "script", "pattern": r"cdn\.livechatinc\.com"],
             ],
             "category": "Customer Support",
             "website": "https://www.livechat.com"
@@ -943,7 +1075,7 @@ FINGERPRINTS = {
         "Google Fonts": {
             "patterns": [
                 {"type": "css", "pattern": r"fonts\.googleapis\.com"},
-                {"type": "css", "pattern": r"fonts\.gstatic\.com"},
+                {"type": "css", "pattern": r"fonts\.gstatic\.com"],
             ],
             "category": "Fonts",
             "website": "https://fonts.google.com"
@@ -968,7 +1100,7 @@ FINGERPRINTS = {
         "Ionicons": {
             "patterns": [
                 {"type": "script", "pattern": r"ionicons"},
-                {"type": "html", "pattern": r"ion-icon"},
+                {"type": "html", "pattern": r"ion-icon"],
             ],
             "category": "Icons",
             "website": "https://ionic.io/ionicons"
@@ -976,14 +1108,14 @@ FINGERPRINTS = {
         "Feather Icons": {
             "patterns": [
                 {"type": "script", "pattern": r"feather(?:\.min)?\.js"},
-                {"type": "html", "pattern": r"data-feather"},
+                {"type": "html", "pattern": r"data-feather"],
             ],
             "category": "Icons",
             "website": "https://feathericons.com"
         },
         "Heroicons": {
             "patterns": [
-                {"type": "html", "pattern": r"heroicon"},
+                {"type": "html", "pattern": r"heroicon"],
             ],
             "category": "Icons",
             "website": "https://heroicons.com"
@@ -991,14 +1123,14 @@ FINGERPRINTS = {
         "Bootstrap Icons": {
             "patterns": [
                 {"type": "css", "pattern": r"bootstrap-icons"},
-                {"type": "html", "pattern": r"class=\"bi bi-"},
+                {"type": "html", "pattern": r"class=\"bi bi-"],
             ],
             "category": "Icons",
             "website": "https://icons.getbootstrap.com"
         },
         "Adobe Fonts": {
             "patterns": [
-                {"type": "css", "pattern": r"use\.typekit\.net"},
+                {"type": "css", "pattern": r"use\.typekit\.net"],
             ],
             "category": "Fonts",
             "website": "https://fonts.adobe.com"
@@ -1016,7 +1148,7 @@ FINGERPRINTS = {
         "PayPal": {
             "patterns": [
                 {"type": "script", "pattern": r"paypal\.com/sdk"},
-                {"type": "html", "pattern": r"paypal"},
+                {"type": "html", "pattern": r"paypal"],
             ],
             "category": "Payment",
             "website": "https://www.paypal.com"
@@ -1024,28 +1156,28 @@ FINGERPRINTS = {
         "Square": {
             "patterns": [
                 {"type": "script", "pattern": r"squareup\.com"},
-                {"type": "script", "pattern": r"square\.js"},
+                {"type": "script", "pattern": r"square\.js"],
             ],
             "category": "Payment",
             "website": "https://squareup.com"
         },
         "Braintree": {
             "patterns": [
-                {"type": "script", "pattern": r"braintree"},
+                {"type": "script", "pattern": r"braintree"],
             ],
             "category": "Payment",
             "website": "https://www.braintreepayments.com"
         },
         "Klarna": {
             "patterns": [
-                {"type": "script", "pattern": r"klarna"},
+                {"type": "script", "pattern": r"klarna"],
             ],
             "category": "Payment",
             "website": "https://www.klarna.com"
         },
         "Affirm": {
             "patterns": [
-                {"type": "script", "pattern": r"affirm\.com"},
+                {"type": "script", "pattern": r"affirm\.com"],
             ],
             "category": "Payment",
             "website": "https://www.affirm.com"
@@ -1063,17 +1195,39 @@ FINGERPRINTS = {
         "hCaptcha": {
             "patterns": [
                 {"type": "script", "pattern": r"hcaptcha\.com"},
-                {"type": "html", "pattern": r"h-captcha"},
+                {"type": "html", "pattern": r"h-captcha"],
             ],
             "category": "Security",
             "website": "https://www.hcaptcha.com"
         },
         "Cloudflare Turnstile": {
             "patterns": [
-                {"type": "script", "pattern": r"challenges\.cloudflare\.com/turnstile"},
+                {"type": "script", "pattern": r"challenges\.cloudflare\.com/turnstile"],
             ],
             "category": "Security",
             "website": "https://www.cloudflare.com/products/turnstile/"
+        },
+        "Auth0": {
+            "patterns": [
+                {"type": "script", "pattern": r"auth0\.com|auth0-js"},
+                {"type": "html", "pattern": r"auth0"},
+            ],
+            "category": "Authentication",
+            "website": "https://auth0.com"
+        },
+        "Clerk": {
+            "patterns": [
+                {"type": "script", "pattern": r"clerk\.com|clerkjs"},
+            ],
+            "category": "Authentication",
+            "website": "https://clerk.com"
+        },
+        "Supabase Auth": {
+            "patterns": [
+                {"type": "script", "pattern": r"supabase\.co|supabase-js"},
+            ],
+            "category": "Authentication",
+            "website": "https://supabase.com"
         },
     },
     "video_media": {
@@ -1089,7 +1243,7 @@ FINGERPRINTS = {
         "Vimeo": {
             "patterns": [
                 {"type": "html", "pattern": r"player\.vimeo\.com"},
-                {"type": "script", "pattern": r"player\.vimeo\.com"},
+                {"type": "script", "pattern": r"player\.vimeo\.com"],
             ],
             "category": "Video",
             "website": "https://vimeo.com"
@@ -1097,14 +1251,14 @@ FINGERPRINTS = {
         "Wistia": {
             "patterns": [
                 {"type": "script", "pattern": r"wistia\.com"},
-                {"type": "html", "pattern": r"wistia_embed"},
+                {"type": "html", "pattern": r"wistia_embed"],
             ],
             "category": "Video",
             "website": "https://wistia.com"
         },
         "JW Player": {
             "patterns": [
-                {"type": "script", "pattern": r"jwplayer"},
+                {"type": "script", "pattern": r"jwplayer"],
             ],
             "category": "Video",
             "website": "https://www.jwplayer.com"
@@ -1112,7 +1266,7 @@ FINGERPRINTS = {
         "Video.js": {
             "patterns": [
                 {"type": "script", "pattern": r"video(?:\.min)?\.js"},
-                {"type": "html", "pattern": r"video-js"},
+                {"type": "html", "pattern": r"video-js"],
             ],
             "category": "Video",
             "website": "https://videojs.com"
@@ -1122,42 +1276,42 @@ FINGERPRINTS = {
         "Facebook SDK": {
             "patterns": [
                 {"type": "script", "pattern": r"connect\.facebook\.net"},
-                {"type": "html", "pattern": r"fb-root"},
+                {"type": "html", "pattern": r"fb-root"],
             ],
             "category": "Social",
             "website": "https://developers.facebook.com"
         },
         "Twitter Widgets": {
             "patterns": [
-                {"type": "script", "pattern": r"platform\.twitter\.com"},
+                {"type": "script", "pattern": r"platform\.twitter\.com"],
             ],
             "category": "Social",
             "website": "https://developer.twitter.com"
         },
         "LinkedIn SDK": {
             "patterns": [
-                {"type": "script", "pattern": r"platform\.linkedin\.com"},
+                {"type": "script", "pattern": r"platform\.linkedin\.com"],
             ],
             "category": "Social",
             "website": "https://developer.linkedin.com"
         },
         "Pinterest SDK": {
             "patterns": [
-                {"type": "script", "pattern": r"assets\.pinterest\.com"},
+                {"type": "script", "pattern": r"assets\.pinterest\.com"],
             ],
             "category": "Social",
             "website": "https://developers.pinterest.com"
         },
         "AddThis": {
             "patterns": [
-                {"type": "script", "pattern": r"addthis\.com"},
+                {"type": "script", "pattern": r"addthis\.com"],
             ],
             "category": "Social",
             "website": "https://www.addthis.com"
         },
         "ShareThis": {
             "patterns": [
-                {"type": "script", "pattern": r"sharethis\.com"},
+                {"type": "script", "pattern": r"sharethis\.com"],
             ],
             "category": "Social",
             "website": "https://sharethis.com"
@@ -1176,7 +1330,7 @@ FINGERPRINTS = {
         "AMP": {
             "patterns": [
                 {"type": "html", "pattern": r"<html[^>]*amp"},
-                {"type": "script", "pattern": r"cdn\.ampproject\.org"},
+                {"type": "script", "pattern": r"cdn\.ampproject\.org"],
             ],
             "category": "Web Technology",
             "website": "https://amp.dev"
@@ -1199,7 +1353,7 @@ FINGERPRINTS = {
         },
         "Socket.io": {
             "patterns": [
-                {"type": "script", "pattern": r"socket\.io"},
+                {"type": "script", "pattern": r"socket\.io"],
             ],
             "category": "Web Technology",
             "website": "https://socket.io"
@@ -1207,7 +1361,7 @@ FINGERPRINTS = {
         "webpack": {
             "patterns": [
                 {"type": "script_content", "pattern": r"webpackJsonp"},
-                {"type": "script", "pattern": r"webpack"},
+                {"type": "script", "pattern": r"webpack"],
             ],
             "category": "Build Tool",
             "website": "https://webpack.js.org"
@@ -1215,21 +1369,21 @@ FINGERPRINTS = {
         "Vite": {
             "patterns": [
                 {"type": "script", "pattern": r"@vite"},
-                {"type": "script", "pattern": r"vite"},
+                {"type": "script", "pattern": r"vite"],
             ],
             "category": "Build Tool",
             "website": "https://vitejs.dev"
         },
         "Parcel": {
             "patterns": [
-                {"type": "script", "pattern": r"parcel"},
+                {"type": "script", "pattern": r"parcel"],
             ],
             "category": "Build Tool",
             "website": "https://parceljs.org"
         },
         "esbuild": {
             "patterns": [
-                {"type": "script_content", "pattern": r"esbuild"},
+                {"type": "script_content", "pattern": r"esbuild"],
             ],
             "category": "Build Tool",
             "website": "https://esbuild.github.io"
@@ -1237,31 +1391,53 @@ FINGERPRINTS = {
         "Sentry": {
             "patterns": [
                 {"type": "script", "pattern": r"sentry"},
-                {"type": "script", "pattern": r"browser\.sentry-cdn\.com"},
+                {"type": "script", "pattern": r"browser\.sentry-cdn\.com"],
             ],
             "category": "Error Tracking",
             "website": "https://sentry.io"
         },
         "LogRocket": {
             "patterns": [
-                {"type": "script", "pattern": r"cdn\.logrocket\.io"},
+                {"type": "script", "pattern": r"cdn\.logrocket\.io"],
             ],
             "category": "Error Tracking",
             "website": "https://logrocket.com"
         },
         "Bugsnag": {
             "patterns": [
-                {"type": "script", "pattern": r"bugsnag"},
+                {"type": "script", "pattern": r"bugsnag"],
             ],
             "category": "Error Tracking",
             "website": "https://www.bugsnag.com"
         },
         "Rollbar": {
             "patterns": [
-                {"type": "script", "pattern": r"rollbar"},
+                {"type": "script", "pattern": r"rollbar"],
             ],
             "category": "Error Tracking",
             "website": "https://rollbar.com"
+        },
+        "Datadog": {
+            "patterns": [
+                {"type": "script", "pattern": r"datadoghq\.com|ddrum"},
+            ],
+            "category": "Monitoring",
+            "website": "https://www.datadoghq.com"
+        },
+        "New Relic": {
+            "patterns": [
+                {"type": "script", "pattern": r"newrelic\.com|nr-data"},
+            ],
+            "category": "Monitoring",
+            "website": "https://newrelic.com"
+        },
+        "Firebase": {
+            "patterns": [
+                {"type": "script", "pattern": r"firebase\.com|firebase-app"},
+                {"type": "script_content", "pattern": r"firebase"},
+            ],
+            "category": "Backend / BaaS",
+            "website": "https://firebase.google.com"
         },
     }
 }
