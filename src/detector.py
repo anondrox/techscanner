@@ -8,6 +8,7 @@ import time
 import ssl
 import certifi
 import random
+import json
 
 from .fingerprints import FINGERPRINTS, SECURITY_HEADERS
 from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_ENDPOINTS, ENDPOINT_VERSION_PATTERNS, COMMON_ENDPOINTS
@@ -17,12 +18,14 @@ class TechDetector:
     def __init__(self, timeout: int = 25, max_retries: int = 2, 
                   enable_cve: bool = False, nvd_api_key: Optional[str] = None,
                   stealth_mode: bool = True,
-                  min_confidence: float = 0.70):
+                  min_confidence: float = 0.70,
+                  enable_graphql_recon: bool = False):
         self.timeout = timeout
         self.max_retries = max_retries
         self.enable_cve = enable_cve
         self.stealth_mode = stealth_mode
         self.min_confidence = min_confidence
+        self.enable_graphql_recon = enable_graphql_recon
         self.cve_lookup = CVELookup(api_key=nvd_api_key if enable_cve else None)
         
         self.user_agents = [
@@ -34,27 +37,27 @@ class TechDetector:
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
         ]
 
+        # Common GraphQL field/type wordlist for light schema inference (Clairvoyance-style)
+        self.graphql_common_fields = [
+            "id", "_id", "uuid", "name", "email", "username", "password", "token", "accessToken",
+            "user", "users", "me", "profile", "account", "admin", "role", "roles",
+            "query", "mutation", "subscription", "__schema", "__type", "__typename",
+            "createdAt", "updatedAt", "deletedAt", "status", "active", "enabled",
+            "data", "input", "output", "result", "error", "message",
+            "page", "limit", "offset", "total", "count", "edges", "node", "nodes",
+            "login", "logout", "register", "resetPassword", "verifyEmail",
+            "product", "products", "order", "orders", "cart", "payment",
+            "file", "files", "upload", "download"
+        ]
+
     def _get_headers(self) -> Dict[str, str]:
         ua = random.choice(self.user_agents)
         headers = {
             "User-Agent": ua,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json",
             "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Cache-Control": "max-age=0",
         }
-        if random.random() > 0.4:
-            headers["Sec-CH-UA"] = '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"'
-            headers["Sec-CH-UA-Mobile"] = "?0"
-            headers["Sec-CH-UA-Platform"] = random.choice(['"Windows"', '"macOS"', '"Linux"'])
-        if random.random() > 0.6:
-            headers["DNT"] = "1"
         return headers
 
     def _normalize_url(self, url: str) -> str:
@@ -99,76 +102,139 @@ class TechDetector:
         
         return html, headers, final_url, cookies
 
-    async def _scan_endpoints_for_versions(self, session: aiohttp.ClientSession, base_url: str, detected_techs: List[str]) -> Dict[str, str]:
-        """Enhanced automated version detection for CVE checking"""
-        versions: Dict[str, str] = {}
+    async def _post_graphql(self, session: aiohttp.ClientSession, endpoint: str, query: str) -> Optional[Dict]:
+        """Send GraphQL query with stealth"""
+        try:
+            await self._stealth_delay()
+            headers = self._get_headers()
+            headers["Content-Type"] = "application/json"
+            
+            payload = {"query": query}
+            
+            ssl_context = ssl.create_default_context(cafile=certifi.where())
+            async with session.post(
+                endpoint,
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=self.timeout),
+                ssl=ssl_context
+            ) as response:
+                if response.status == 200:
+                    return await response.json()
+                return None
+        except:
+            return None
+
+    async def detect_graphql_introspection(self, session: aiohttp.ClientSession, base_url: str, graphql_endpoints: List[str]) -> Dict[str, Any]:
+        """Check if GraphQL introspection is enabled (Clairvoyance-style recon)"""
+        result = {
+            "detected": False,
+            "introspection_enabled": False,
+            "endpoints": [],
+            "schema_hints": [],
+            "risk_level": "Low"
+        }
+
+        if not graphql_endpoints:
+            return result
+
+        result["detected"] = True
+        result["endpoints"] = graphql_endpoints
+
+        introspection_query = """
+        {
+          __schema {
+            queryType { name }
+            mutationType { name }
+            types {
+              name
+              kind
+            }
+          }
+        }
+        """
+
+        for endpoint in graphql_endpoints[:3]:  # Limit to first 3 endpoints
+            full_url = urljoin(base_url, endpoint) if endpoint.startswith('/') else endpoint
+            
+            data = await self._post_graphql(session, full_url, introspection_query)
+            
+            if data and "data" in data and data["data"]:
+                result["introspection_enabled"] = True
+                schema = data["data"].get("__schema", {})
+                
+                types = schema.get("types", [])
+                if types:
+                    type_names = [t.get("name") for t in types if t.get("name") and not t.get("name").startswith("__")]
+                    result["schema_hints"] = type_names[:15]  # Limit output
+                
+                result["risk_level"] = "High" if result["introspection_enabled"] else "Medium"
+                break
+            
+            # If introspection disabled, try light field inference (mini Clairvoyance)
+            if self.enable_graphql_recon:
+                inferred = await self._light_graphql_field_inference(session, full_url)
+                if inferred:
+                    result["schema_hints"].extend(inferred)
+                    result["risk_level"] = "Medium"
+
+        return result
+
+    async def _light_graphql_field_inference(self, session: aiohttp.ClientSession, endpoint: str) -> List[str]:
+        """Lightweight schema inference when introspection is disabled (inspired by Clairvoyance)"""
+        discovered = []
         
+        # Test common root types
+        test_queries = [
+            "{ __typename }",
+            "{ me { id } }",
+            "{ user { id email } }",
+            "{ users { id } }",
+            "mutation { login(input: {email: \"test@test.com\"}) { token } }"
+        ]
+
+        for query in test_queries[:4]:
+            data = await self._post_graphql(session, endpoint, query)
+            if data:
+                if "errors" in data:
+                    # Look for useful error messages that reveal field names
+                    for err in data.get("errors", []):
+                        msg = str(err.get("message", "")).lower()
+                        for field in self.graphql_common_fields:
+                            if field in msg and field not in discovered:
+                                discovered.append(field)
+                elif "data" in data:
+                    discovered.append("__typename")
+
+        return discovered[:10]
+
+    async def _scan_endpoints_for_versions(self, session: aiohttp.ClientSession, base_url: str, detected_techs: List[str]) -> Dict[str, str]:
+        versions: Dict[str, str] = {}
         if not detected_techs:
             return versions
-        
+
         framework_endpoints = set()
-        common_endpoints_set = set(COMMON_ENDPOINTS)
-        robots_endpoints = set()
-        sitemap_endpoints = set()
-        
         for tech in detected_techs:
             if tech in FRAMEWORK_ENDPOINTS:
                 framework_endpoints.update(FRAMEWORK_ENDPOINTS[tech])
-        
-        # Fetch robots.txt for additional endpoints
-        try:
-            robots_url = urljoin(base_url, '/robots.txt')
-            robots_response = await self._fetch_page(session, robots_url)
-            if robots_response[0]:
-                robots_content = robots_response[0]
-                sitemap_urls = re.findall(r'Sitemap:\s*(\S+)', robots_content, re.IGNORECASE)
-                sitemap_endpoints.update(sitemap_urls)
-                disallow_paths = re.findall(r'Disallow:\s*/([^\s]*)', robots_content, re.IGNORECASE)
-                for path in disallow_paths:
-                    if path:
-                        robots_endpoints.add(f"/{path}")
-        except:
-            pass
-        
-        # Parse sitemap.xml
-        try:
-            sitemap_url = urljoin(base_url, '/sitemap.xml')
-            sitemap_response = await self._fetch_page(session, sitemap_url)
-            if sitemap_response[0]:
-                sitemap_urls = re.findall(r'<loc>([^<]+)</loc>', sitemap_response[0])
-                for url in sitemap_urls:
-                    try:
-                        path = urlparse(url).path
-                        if path:
-                            sitemap_endpoints.add(path)
-                    except:
-                        pass
-        except:
-            pass
-        
-        # Prioritize endpoints for version discovery
-        endpoints_to_scan = list(robots_endpoints)[:20]
-        endpoints_to_scan.extend(list(framework_endpoints)[:8])
-        endpoints_to_scan.extend(list(common_endpoints_set)[:8])
-        endpoints_to_scan.extend(list(sitemap_endpoints)[:5])
-        
+
+        endpoints_to_scan = list(framework_endpoints)[:10] + list(COMMON_ENDPOINTS)[:8]
+
         for endpoint in endpoints_to_scan:
             try:
                 endpoint_url = urljoin(base_url, endpoint) if endpoint.startswith('/') else endpoint
                 if endpoint_url.startswith('http'):
                     html, _, _, _ = await self._fetch_page(session, endpoint_url)
-                    if html and len(html) < 60000:
+                    if html and len(html) < 50000:
                         for pattern, _ in ENDPOINT_VERSION_PATTERNS:
                             matches = re.findall(pattern, html, re.IGNORECASE)
                             if matches:
                                 for tech in detected_techs:
-                                    if tech.lower() in endpoint.lower() or any(kw in endpoint.lower() for kw in ['version', 'about', 'api', 'config']):
-                                        if tech not in versions:  # Don't overwrite if we already have a version
-                                            versions[tech] = matches[0]
+                                    if tech not in versions:
+                                        versions[tech] = matches[0]
                                         break
             except:
                 pass
-        
         return versions
 
     def _extract_scripts(self, soup: BeautifulSoup) -> Tuple[List[str], List[str]]:
@@ -186,29 +252,22 @@ class TechDetector:
 
     def _extract_css(self, soup: BeautifulSoup) -> List[str]:
         css_hrefs: List[str] = []
-        
         for link in soup.find_all('link', rel='stylesheet'):
             href = link.get('href')
             if href:
                 css_hrefs.append(str(href))
-        
         for style in soup.find_all('style'):
             if style.string:
                 css_hrefs.append(str(style.string))
-        
         return css_hrefs
 
     def _extract_meta(self, soup: BeautifulSoup) -> Dict[str, str]:
         meta_tags: Dict[str, str] = {}
-        
         for meta in soup.find_all('meta'):
             name = meta.get('name') or meta.get('property') or meta.get('http-equiv') or ''
             content = meta.get('content') or ''
             if name and content:
-                name_str = str(name) if not isinstance(name, str) else name
-                content_str = str(content) if not isinstance(content, str) else content
-                meta_tags[name_str.lower()] = content_str
-        
+                meta_tags[str(name).lower()] = str(content)
         return meta_tags
 
     def _check_pattern(self, pattern_info: Dict[str, Any], context: Dict[str, Any]) -> Tuple[bool, float]:
@@ -302,92 +361,6 @@ class TechDetector:
         detected.sort(key=lambda x: (-x['confidence'], x['name']))
         return detected
 
-    def detect_tech_stacks(self, technologies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        if not technologies:
-            return []
-        tech_names = {t['name'] for t in technologies}
-        detected_stacks = []
-        for stack_name, stack_info in TECH_STACKS.items():
-            core_techs = set(stack_info["core"])
-            if core_techs.issubset(tech_names):
-                matched_recommended = [tech for tech in stack_info.get("recommended", []) if tech in tech_names]
-                detected_stacks.append({
-                    "name": stack_name,
-                    "description": stack_info.get("description", ""),
-                    "core_technologies": list(core_techs),
-                    "matched_recommended": matched_recommended,
-                    "confidence": 0.95 if len(matched_recommended) > 0 else 0.85
-                })
-        detected_stacks.sort(key=lambda x: -x["confidence"])
-        return detected_stacks
-
-    def _analyze_security_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
-        results: Dict[str, Any] = {
-            'present': [],
-            'missing': [],
-            'score': 0,
-            'max_score': 0,
-        }
-        
-        importance_weights = {'high': 3, 'medium': 2, 'low': 1}
-        
-        for header_key, header_info in SECURITY_HEADERS.items():
-            results['max_score'] += importance_weights.get(header_info['importance'], 1)
-            
-            if header_key in headers:
-                results['present'].append({
-                    'header': header_key,
-                    'value': headers[header_key][:100] if len(headers[header_key]) > 100 else headers[header_key]
-                })
-                results['score'] += importance_weights.get(header_info['importance'], 1)
-            else:
-                results['missing'].append({
-                    'header': header_key,
-                    'importance': header_info['importance'],
-                    'description': header_info['description']
-                })
-        
-        if results['max_score'] > 0:
-            percentage = (results['score'] / results['max_score']) * 100
-            if percentage >= 90:
-                results['grade'] = 'A+'
-            elif percentage >= 80:
-                results['grade'] = 'A'
-            elif percentage >= 70:
-                results['grade'] = 'B'
-            elif percentage >= 60:
-                results['grade'] = 'C'
-            elif percentage >= 50:
-                results['grade'] = 'D'
-            else:
-                results['grade'] = 'F'
-        else:
-            results['grade'] = 'N/A'
-        
-        return results
-
-    def _analyze_performance(self, html: str, headers: Dict[str, str]) -> Dict[str, Any]:
-        performance = {}
-        
-        if 'content-encoding' in headers:
-            performance['compression'] = headers['content-encoding']
-        
-        cache_headers = {}
-        for h in ['cache-control', 'expires', 'etag', 'last-modified']:
-            if h in headers:
-                cache_headers[h] = headers[h][:80]
-        if cache_headers:
-            performance['caching'] = cache_headers
-        
-        if 'loading="lazy"' in html.lower() or 'lazy' in html.lower():
-            performance['lazy_loading'] = True
-        
-        preload = re.findall(r'rel=["\']preload["\']', html, re.IGNORECASE)
-        if preload:
-            performance['preload'] = len(preload)
-        
-        return performance
-
     async def analyze_url(self, url: str) -> Dict[str, Any]:
         start_time = time.time()
         result = {
@@ -400,7 +373,8 @@ class TechDetector:
             'page_info': {},
             'analysis_time': 0,
             'final_url': url,
-            'tech_stacks': []
+            'tech_stacks': [],
+            'graphql': {}
         }
         
         try:
@@ -410,11 +384,13 @@ class TechDetector:
                     result['error'] = 'Failed to fetch page'
                     result['analysis_time'] = round(time.time() - start_time, 2)
                     return result
+                
                 result['final_url'] = final_url
                 soup = BeautifulSoup(html, 'lxml')
                 script_srcs, script_contents = self._extract_scripts(soup)
                 css_hrefs = self._extract_css(soup)
                 meta_tags = self._extract_meta(soup)
+                
                 context = {
                     'html': html,
                     'headers': headers,
@@ -425,26 +401,37 @@ class TechDetector:
                     'cookies': cookies,
                     'url': final_url
                 }
+                
                 technologies = self._detect_technologies(context)
                 result['technologies'] = technologies
                 result['tech_stacks'] = self.detect_tech_stacks(technologies)
                 result['security'] = self._analyze_security_headers(headers)
                 result['performance'] = self._analyze_performance(html, headers)
+                
                 title_tag = soup.find('title')
                 if title_tag:
                     result['page_info']['title'] = title_tag.get_text(strip=True)[:100]
-                
-                # Automated CVE checking when enabled
+
+                # === GraphQL Detection + Clairvoyance-style Recon ===
+                graphql_endpoints = []
+                for tech in technologies:
+                    if 'graphql' in tech['category'].lower() or 'graphql' in tech['name'].lower():
+                        if '/graphql' in tech.get('name', '').lower() or any(p in str(context.get('html', '')).lower() for p in ['/graphql', 'graphql']):
+                            graphql_endpoints.append('/graphql')
+
+                if graphql_endpoints or any('graphql' in t['category'].lower() for t in technologies):
+                    graphql_info = await self.detect_graphql_introspection(session, final_url, ['/graphql'])
+                    result['graphql'] = graphql_info
+
+                # CVE Checking
                 if self.enable_cve and technologies:
                     detected_names = [t['name'] for t in technologies]
-                    # First try to extract versions from initial page
                     for tech in technologies:
                         if not tech.get('version'):
                             version = self.cve_lookup.extract_version(tech['name'], context)
                             if version:
                                 tech['version'] = version
                     
-                    # Then do deeper endpoint scanning for versions
                     versions = await self._scan_endpoints_for_versions(session, final_url, detected_names)
                     for tech in technologies:
                         if tech['name'] in versions and not tech.get('version'):
@@ -452,12 +439,14 @@ class TechDetector:
                     
                     cve_results = await self.cve_lookup.lookup_cves(technologies)
                     result['vulnerabilities'] = cve_results
-                
+
                 result['success'] = True
                 result['analysis_time'] = round(time.time() - start_time, 2)
+
         except Exception as e:
             result['error'] = str(e)
             result['analysis_time'] = round(time.time() - start_time, 2)
+        
         return result
 
     async def analyze_urls(self, urls: List[str], concurrency: int = 2) -> List[Dict[str, Any]]:
