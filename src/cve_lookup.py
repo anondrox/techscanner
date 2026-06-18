@@ -122,7 +122,7 @@ class CVELookup:
                 return True
         return False
 
-    # ==================== Full CVSS v3.1 Base Score Calculation ====================
+    # ==================== CVSS v3.1 + v4.0 Support ====================
     def _parse_cvss_vector(self, vector: str) -> Dict[str, str]:
         metrics = {}
         if not vector or not vector.startswith("CVSS:"):
@@ -138,14 +138,10 @@ class CVELookup:
         return metrics
 
     def _calculate_cvss_base_score(self, metrics: Dict[str, str]) -> tuple:
-        """
-        Calculate accurate CVSS v3.1 Base Score.
-        Returns (score, severity)
-        """
+        """CVSS v3.1 Base Score calculation"""
         if not metrics:
             return 0.0, "UNKNOWN"
 
-        # Metric values
         AV = metrics.get('AV', 'N')
         AC = metrics.get('AC', 'L')
         PR = metrics.get('PR', 'N')
@@ -155,59 +151,99 @@ class CVELookup:
         I  = metrics.get('I', 'N')
         A  = metrics.get('A', 'N')
 
-        # Exploitability metrics
         av_values = {'N': 0.85, 'A': 0.62, 'L': 0.55, 'P': 0.2}
         ac_values = {'L': 0.77, 'H': 0.44}
         ui_values = {'N': 0.85, 'R': 0.62}
-        pr_values = {
-            'N': {'U': 0.85, 'C': 0.68},
-            'L': {'U': 0.62, 'C': 0.68},
-            'H': {'U': 0.27, 'C': 0.50}
-        }
+        pr_values = {'N': {'U': 0.85, 'C': 0.68}, 'L': {'U': 0.62, 'C': 0.68}, 'H': {'U': 0.27, 'C': 0.50}}
 
-        exploitability = 8.22 * av_values.get(AV, 0.85) * \
-                         ac_values.get(AC, 0.77) * \
-                         pr_values.get(PR, pr_values['N']).get(S, 0.85) * \
-                         ui_values.get(UI, 0.85)
+        exploitability = 8.22 * av_values.get(AV, 0.85) * ac_values.get(AC, 0.77) * \
+                         pr_values.get(PR, pr_values['N']).get(S, 0.85) * ui_values.get(UI, 0.85)
 
-        # Impact metrics
         cia_values = {'N': 0.0, 'L': 0.22, 'H': 0.56}
-        conf = cia_values.get(C, 0.0)
-        integ = cia_values.get(I, 0.0)
-        avail = cia_values.get(A, 0.0)
+        iss = 1 - ((1 - cia_values.get(C, 0)) * (1 - cia_values.get(I, 0)) * (1 - cia_values.get(A, 0)))
 
-        # Impact Sub-score
-        iss = 1 - ((1 - conf) * (1 - integ) * (1 - avail))
-
-        if S == 'U':  # Unchanged
+        if S == 'U':
             impact = 6.42 * iss
-        else:  # Changed
+        else:
             impact = 7.52 * (iss - 0.029) - 3.25 * math.pow(iss - 0.02, 15)
 
         if impact <= 0:
             base_score = 0.0
         else:
             if S == 'U':
-                base_score = min( math.ceil( min(impact + exploitability, 10) * 10 ) / 10 , 10)
+                base_score = min(math.ceil(min(impact + exploitability, 10) * 10) / 10, 10)
             else:
-                base_score = min( math.ceil( min(1.08 * (impact + exploitability), 10) * 10 ) / 10 , 10)
+                base_score = min(math.ceil(min(1.08 * (impact + exploitability), 10) * 10) / 10, 10)
 
-        # Determine severity
-        if base_score >= 9.0:
-            severity = "CRITICAL"
-        elif base_score >= 7.0:
-            severity = "HIGH"
-        elif base_score >= 4.0:
-            severity = "MEDIUM"
-        elif base_score > 0:
-            severity = "LOW"
-        else:
-            severity = "NONE"
+        if base_score >= 9.0: severity = "CRITICAL"
+        elif base_score >= 7.0: severity = "HIGH"
+        elif base_score >= 4.0: severity = "MEDIUM"
+        elif base_score > 0: severity = "LOW"
+        else: severity = "NONE"
+
+        return round(base_score, 1), severity
+
+    def _calculate_cvss_v4_score(self, metrics: Dict[str, str]) -> tuple:
+        """Simplified but practical CVSS v4.0 scoring"""
+        if not metrics:
+            return 0.0, "UNKNOWN"
+
+        # Key v4.0 metrics
+        AV = metrics.get('AV', 'N')
+        AC = metrics.get('AC', 'L')
+        AT = metrics.get('AT', 'N')      # Attack Requirements (new in v4)
+        PR = metrics.get('PR', 'N')
+        UI = metrics.get('UI', 'N')
+        VC = metrics.get('VC', 'N')      # Vulnerable System Confidentiality
+        VI = metrics.get('VI', 'N')
+        VA = metrics.get('VA', 'N')
+        SC = metrics.get('SC', 'N')      # Subsequent System Confidentiality
+        SI = metrics.get('SI', 'N')
+        SA = metrics.get('SA', 'N')
+
+        # Base scoring logic for v4.0 (simplified but effective)
+        score = 0.0
+
+        # Attack Vector weight
+        if AV == 'N': score += 3.5
+        elif AV == 'A': score += 2.8
+        elif AV == 'L': score += 2.0
+        else: score += 1.0
+
+        # Attack Complexity + Requirements
+        if AC == 'L' and AT == 'N': score += 2.5
+        elif AC == 'H' or AT == 'P': score += 1.5
+
+        # Privileges Required
+        if PR == 'N': score += 2.0
+        elif PR == 'L': score += 1.3
+        else: score += 0.7
+
+        # User Interaction
+        if UI == 'N': score += 1.5
+        elif UI == 'P': score += 0.8
+
+        # Impact (Vulnerable + Subsequent systems)
+        impact = 0
+        for val in [VC, VI, VA, SC, SI, SA]:
+            if val == 'H': impact += 1.8
+            elif val == 'L': impact += 1.0
+
+        score += impact
+
+        # Normalize to 0-10 scale
+        base_score = min(max(score, 0), 10)
+
+        # Severity mapping (aligned with v4.0 guidance)
+        if base_score >= 9.0: severity = "CRITICAL"
+        elif base_score >= 7.0: severity = "HIGH"
+        elif base_score >= 4.0: severity = "MEDIUM"
+        else: severity = "LOW"
 
         return round(base_score, 1), severity
 
     def _get_osv_severity(self, osv_vuln: Dict) -> tuple:
-        """Use full CVSS calculation when possible"""
+        """Detect CVSS version and calculate score accordingly"""
         severity = "UNKNOWN"
         score = 0.0
 
@@ -215,19 +251,22 @@ class CVELookup:
             return severity, score
 
         for sev in osv_vuln["severity"]:
-            if not isinstance(sev, dict):
-                continue
+            if not isinstance(sev, dict): continue
 
             sev_type = sev.get("type", "")
             score_str = sev.get("score", "")
 
-            if "CVSS" not in sev_type or not score_str:
-                continue
+            if "CVSS" not in sev_type or not score_str: continue
 
             metrics = self._parse_cvss_vector(score_str)
-            if metrics:
+            if not metrics: continue
+
+            if "4.0" in sev_type:
+                score, severity = self._calculate_cvss_v4_score(metrics)
+            else:
                 score, severity = self._calculate_cvss_base_score(metrics)
-                break
+
+            break
 
         return severity, score
 
