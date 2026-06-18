@@ -75,6 +75,18 @@ FINGERPRINTS = {
         "API Gateway - Kong": {"patterns": [{"type": "header", "pattern": r"x-kong-proxy-latency"}], "category": "API Gateway", "website": "https://konghq.com"},
         "API Gateway - AWS": {"patterns": [{"type": "header", "pattern": r"x-amzn-requestid"}], "category": "API Gateway", "website": "https://aws.amazon.com/api-gateway/"},
     },
+    "waf": {
+        "Cloudflare WAF": {
+            "patterns": [{"type": "header", "pattern": r"cf-ray|cf-mitigated|cf-cache-status"}], "category": "WAF / Protection", "website": "https://www.cloudflare.com"},
+        "AWS WAF": {
+            "patterns": [{"type": "header", "pattern": r"x-amzn-waf|awselb"}], "category": "WAF / Protection", "website": "https://aws.amazon.com/waf/"},
+        "Akamai WAF": {
+            "patterns": [{"type": "header", "pattern": r"akamai|akamai-origin"}], "category": "WAF / Protection", "website": "https://www.akamai.com"},
+        "Imperva / Incapsula": {
+            "patterns": [{"type": "header", "pattern": r"x-iinfo|incap_ses|visid_incap"}], "category": "WAF / Protection", "website": "https://www.imperva.com"},
+        "Sucuri WAF": {
+            "patterns": [{"type": "header", "pattern": r"x-sucuri"}], "category": "WAF / Protection", "website": "https://sucuri.net"},
+    },
 }
 
 SECURITY_HEADERS = {
