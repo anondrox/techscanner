@@ -15,7 +15,7 @@ from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_EN
 
 class TechDetector:
     def __init__(self, timeout: int = 15, max_retries: int = 2, 
-                 enable_cve: bool = False, nvd_api_key: Optional[str] = None):
+                  enable_cve: bool = False, nvd_api_key: Optional[str] = None):
         self.timeout = timeout
         self.max_retries = max_retries
         self.enable_cve = enable_cve
@@ -305,294 +305,153 @@ class TechDetector:
         importance_weights = {'high': 3, 'medium': 2, 'low': 1}
         
         for header_key, header_info in SECURITY_HEADERS.items():
-            weight = importance_weights.get(header_info['importance'], 1)
-            results['max_score'] += weight
+            results['max_score'] += importance_weights.get(header_info['importance'], 1)
             
             if header_key in headers:
-                header_value = headers.get(header_key, '') or ''
                 results['present'].append({
-                    'header': header_info['name'],
-                    'value': header_value[:100] + ('...' if len(header_value) > 100 else ''),
-                    'importance': header_info['importance'],
-                    'description': header_info['description'],
+                    'header': header_key,
+                    'value': headers[header_key][:100] if len(headers[header_key]) > 100 else headers[header_key]
                 })
-                results['score'] += weight
+                results['score'] += importance_weights.get(header_info['importance'], 1)
             else:
                 results['missing'].append({
-                    'header': header_info['name'],
+                    'header': header_key,
                     'importance': header_info['importance'],
-                    'description': header_info['description'],
-                    'reference': header_info['reference'],
+                    'description': header_info['description']
                 })
         
         if results['max_score'] > 0:
-            results['grade'] = self._calculate_grade(results['score'] / results['max_score'])
+            percentage = (results['score'] / results['max_score']) * 100
+            if percentage >= 90:
+                results['grade'] = 'A+'
+            elif percentage >= 80:
+                results['grade'] = 'A'
+            elif percentage >= 70:
+                results['grade'] = 'B'
+            elif percentage >= 60:
+                results['grade'] = 'C'
+            elif percentage >= 50:
+                results['grade'] = 'D'
+            else:
+                results['grade'] = 'F'
         else:
             results['grade'] = 'N/A'
         
         return results
 
-    def _calculate_grade(self, ratio: float) -> str:
-        if ratio >= 0.9:
-            return 'A+'
-        elif ratio >= 0.8:
-            return 'A'
-        elif ratio >= 0.7:
-            return 'B'
-        elif ratio >= 0.6:
-            return 'C'
-        elif ratio >= 0.5:
-            return 'D'
-        else:
-            return 'F'
-
-    def _analyze_performance(self, headers: Dict[str, str], html: str, soup: BeautifulSoup) -> Dict[str, Any]:
-        performance: Dict[str, Any] = {
-            'caching': {},
-            'compression': None,
-            'cdn': None,
-            'http2': None,
-            'preload': [],
-            'lazy_loading': False,
-        }
+    def _analyze_performance(self, html: str, headers: Dict[str, str]) -> Dict[str, Any]:
+        performance = {}
         
-        cache_control = headers.get('cache-control', '')
-        if cache_control:
-            performance['caching']['cache-control'] = cache_control
+        # Compression
+        if 'content-encoding' in headers:
+            performance['compression'] = headers['content-encoding']
         
-        if 'etag' in headers:
-            performance['caching']['etag'] = True
+        # Caching
+        cache_headers = {}
+        for h in ['cache-control', 'expires', 'etag', 'last-modified']:
+            if h in headers:
+                cache_headers[h] = headers[h][:80]
+        if cache_headers:
+            performance['caching'] = cache_headers
         
-        if 'last-modified' in headers:
-            performance['caching']['last-modified'] = headers['last-modified']
-        
-        content_encoding = headers.get('content-encoding', '')
-        if content_encoding:
-            performance['compression'] = content_encoding
-        
-        for link in soup.find_all('link', rel='preload'):
-            href = link.get('href')
-            as_type = link.get('as', '')
-            if href:
-                performance['preload'].append({'href': str(href), 'as': str(as_type)})
-        
-        if soup.find_all(attrs={'loading': 'lazy'}):
+        # Lazy loading
+        if 'loading="lazy"' in html.lower() or 'lazy' in html.lower():
             performance['lazy_loading'] = True
+        
+        # Preload
+        preload = re.findall(r'rel=["\']preload["\']', html, re.IGNORECASE)
+        if preload:
+            performance['preload'] = len(preload)
         
         return performance
 
-    def _get_page_info(self, soup: BeautifulSoup, url: str) -> Dict[str, Any]:
-        info: Dict[str, Any] = {
-            'title': '',
-            'description': '',
-            'language': '',
-            'canonical': '',
-            'favicon': '',
-        }
-        
-        title_tag = soup.find('title')
-        if title_tag and title_tag.string:
-            info['title'] = str(title_tag.string).strip()
-        
-        meta_desc = soup.find('meta', attrs={'name': 'description'})
-        if meta_desc:
-            content = meta_desc.get('content')
-            if content:
-                info['description'] = str(content)[:200]
-        
-        html_tag = soup.find('html')
-        if html_tag:
-            lang = html_tag.get('lang')
-            if lang:
-                info['language'] = str(lang)
-        
-        canonical = soup.find('link', rel='canonical')
-        if canonical:
-            href = canonical.get('href')
-            if href:
-                info['canonical'] = str(href)
-        
-        for link in soup.find_all('link'):
-            rel = link.get('rel')
-            if rel is None:
-                rel_str = ''
-            elif isinstance(rel, list):
-                rel_str = ' '.join(str(r) for r in rel)
-            else:
-                rel_str = str(rel)
-            if 'icon' in rel_str.lower():
-                href = link.get('href')
-                if href:
-                    info['favicon'] = urljoin(url, str(href))
-                    break
-        
-        return info
-
-    async def analyze_url(self, url: str, fetch_cves: bool = True) -> Dict[str, Any]:
+    async def analyze_url(self, url: str) -> Dict[str, Any]:
         start_time = time.time()
-        url = self._normalize_url(url)
-        
-        result: Dict[str, Any] = {
+        result = {
             'url': url,
-            'final_url': None,
             'success': False,
-            'error': None,
             'technologies': [],
-            'vulnerabilities': {},
             'security': {},
             'performance': {},
+            'vulnerabilities': {},
             'page_info': {},
             'analysis_time': 0,
+            'final_url': url
         }
         
-        connector = aiohttp.TCPConnector(limit=10, force_close=True)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            html, headers, final_url, cookies = await self._fetch_page(session, url)
-            
-            if html is None:
-                result['error'] = 'Failed to fetch page'
-                result['analysis_time'] = round(time.time() - start_time, 2)
-                return result
-            
-            result['final_url'] = final_url
-            result['success'] = True
-            
-            soup = BeautifulSoup(html, 'lxml')
-            
-            script_srcs, script_contents = self._extract_scripts(soup)
-            css_hrefs = self._extract_css(soup)
-            meta_tags = self._extract_meta(soup)
-            
-            context: Dict[str, Any] = {
-                'html': html,
-                'headers': headers,
-                'cookies': cookies,
-                'url': final_url if final_url else url,
-                'script_srcs': script_srcs,
-                'script_contents': script_contents,
-                'css_hrefs': css_hrefs,
-                'meta_tags': meta_tags,
-            }
-            
-            result['technologies'] = self._detect_technologies(context)
-            result['security'] = self._analyze_security_headers(headers)
-            result['performance'] = self._analyze_performance(headers, html, soup)
-            result['page_info'] = self._get_page_info(soup, final_url if final_url else url)
-            
-            # Scan endpoints for additional version info
-            detected_tech_names = [t['name'] for t in result['technologies']]
-            endpoint_versions = await self._scan_endpoints_for_versions(session, final_url if final_url else url, detected_tech_names)
-            for i, tech in enumerate(result['technologies']):
-                if tech['name'] in endpoint_versions and not tech['version']:
-                    result['technologies'][i]['version'] = endpoint_versions[tech['name']]
-            
-            # Always fetch CVE IDs for technologies and add to each tech
-            if self.cve_lookup and fetch_cves:
-                cve_ids_by_tech = self._fetch_cve_ids_for_techs(result['technologies'], context)
-                for i, tech in enumerate(result['technologies']):
-                    tech_name = tech.get('name', '')
-                    if tech_name in cve_ids_by_tech:
-                        result['technologies'][i]['cves'] = cve_ids_by_tech[tech_name]
-                    else:
-                        result['technologies'][i]['cves'] = []
-            
-            if self.enable_cve and self.cve_lookup and fetch_cves:
-                result['vulnerabilities'] = self._fetch_cves(result['technologies'], context)
-        
-        result['analysis_time'] = round(time.time() - start_time, 2)
-        return result
-
-    def _fetch_cve_ids_for_techs(self, technologies: List[Dict[str, Any]], context: Dict[str, Any]) -> Dict[str, List[str]]:
-        """Fetch just CVE IDs for each technology (lightweight, always runs)"""
-        if not self.cve_lookup:
-            return {}
-        
-        cve_ids: Dict[str, List[str]] = {}
-        
-        for tech in technologies:
-            tech_name = tech.get('name', '')
-            if not tech_name:
-                continue
-            
-            version = self.cve_lookup.extract_version(tech_name, context)
-            cves = self.cve_lookup.search_cves(tech_name, version, max_results=3)
-            
-            if cves:
-                cve_ids[tech_name] = [cve.cve_id for cve in cves]
-            else:
-                cve_ids[tech_name] = []
-        
-        return cve_ids
-
-    def _fetch_cves(self, technologies: List[Dict[str, Any]], context: Dict[str, Any]) -> Dict[str, Any]:
-        if not self.cve_lookup:
-            return {}
-        
-        vulnerabilities: Dict[str, Any] = {
-            'total_cves': 0,
-            'critical': 0,
-            'high': 0,
-            'medium': 0,
-            'low': 0,
-            'by_technology': {},
-        }
-        
-        for tech in technologies:
-            tech_name = tech.get('name', '')
-            if not tech_name:
-                continue
-            
-            version = self.cve_lookup.extract_version(tech_name, context)
-            
-            cves = self.cve_lookup.search_cves(tech_name, version, max_results=5)
-            
-            if cves:
-                tech_cves = []
-                for cve in cves:
-                    tech_cves.append(format_cve_for_display(cve))
-                    vulnerabilities['total_cves'] += 1
-                    
-                    severity = cve.severity.upper()
-                    if severity == 'CRITICAL':
-                        vulnerabilities['critical'] += 1
-                    elif severity == 'HIGH':
-                        vulnerabilities['high'] += 1
-                    elif severity == 'MEDIUM':
-                        vulnerabilities['medium'] += 1
-                    elif severity == 'LOW':
-                        vulnerabilities['low'] += 1
+        try:
+            async with aiohttp.ClientSession() as session:
+                html, headers, final_url, cookies = await self._fetch_page(session, self._normalize_url(url))
                 
-                vulnerabilities['by_technology'][tech_name] = {
-                    'version': version,
-                    'cves': tech_cves,
+                if not html:
+                    result['error'] = 'Failed to fetch page'
+                    result['analysis_time'] = round(time.time() - start_time, 2)
+                    return result
+                
+                result['final_url'] = final_url
+                
+                # Parse page
+                soup = BeautifulSoup(html, 'lxml')
+                
+                # Extract context
+                script_srcs, script_contents = self._extract_scripts(soup)
+                css_hrefs = self._extract_css(soup)
+                meta_tags = self._extract_meta(soup)
+                
+                context = {
+                    'html': html,
+                    'headers': headers,
+                    'script_srcs': script_srcs,
+                    'script_contents': script_contents,
+                    'css_hrefs': css_hrefs,
+                    'meta_tags': meta_tags,
+                    'cookies': cookies,
+                    'url': final_url
                 }
+                
+                # Detect technologies
+                technologies = self._detect_technologies(context)
+                result['technologies'] = technologies
+                
+                # Security headers
+                result['security'] = self._analyze_security_headers(headers)
+                
+                # Performance
+                result['performance'] = self._analyze_performance(html, headers)
+                
+                # Page info
+                title_tag = soup.find('title')
+                if title_tag:
+                    result['page_info']['title'] = title_tag.get_text(strip=True)[:100]
+                
+                # CVE lookup if enabled
+                if self.enable_cve and technologies:
+                    detected_names = [t['name'] for t in technologies]
+                    versions = await self._scan_endpoints_for_versions(session, final_url, detected_names)
+                    
+                    # Merge versions
+                    for tech in technologies:
+                        if tech['name'] in versions:
+                            tech['version'] = versions[tech['name']]
+                    
+                    cve_results = await self.cve_lookup.lookup_cves(technologies)
+                    result['vulnerabilities'] = cve_results
+                
+                result['success'] = True
+                result['analysis_time'] = round(time.time() - start_time, 2)
+                
+        except Exception as e:
+            result['error'] = str(e)
+            result['analysis_time'] = round(time.time() - start_time, 2)
         
-        return vulnerabilities
+        return result
 
     async def analyze_urls(self, urls: List[str], concurrency: int = 5) -> List[Dict[str, Any]]:
         semaphore = asyncio.Semaphore(concurrency)
         
-        async def limited_analyze(url: str) -> Dict[str, Any]:
+        async def analyze_with_semaphore(url):
             async with semaphore:
                 return await self.analyze_url(url)
         
-        tasks = [limited_analyze(url) for url in urls]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        processed_results: List[Dict[str, Any]] = []
-        for i, res in enumerate(results):
-            if isinstance(res, Exception):
-                processed_results.append({
-                    'url': urls[i],
-                    'success': False,
-                    'error': str(res),
-                    'technologies': [],
-                    'security': {},
-                    'performance': {},
-                    'page_info': {},
-                    'analysis_time': 0,
-                })
-            elif isinstance(res, dict):
-                processed_results.append(res)
-        
-        return processed_results
+        tasks = [analyze_with_semaphore(url) for url in urls]
+        return await asyncio.gather(*tasks, return_exceptions=False)
