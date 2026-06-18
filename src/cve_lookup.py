@@ -121,49 +121,78 @@ class CVELookup:
                 return True
         return False
 
-    # ==================== OSV.dev Integration ====================
-    def _query_osv(self, package_name: str, version: str, ecosystem: str = "npm") -> List[Dict]:
+    # ==================== Improved OSV CVSS Parsing ====================
+    def _parse_cvss_vector(self, vector: str) -> Dict[str, str]:
+        """Parse CVSS vector string into metric dictionary"""
+        metrics = {}
+        if not vector or not vector.startswith("CVSS:"):
+            return metrics
         try:
-            url = "https://api.osv.dev/v1/query"
-            payload = {
-                "package": {"name": package_name, "ecosystem": ecosystem},
-                "version": version
-            }
-            response = requests.post(url, json=payload, timeout=10)
-            if response.status_code == 200:
-                return response.json().get("vulns", [])
+            # Remove CVSS:3.1/ or CVSS:4.0/ prefix
+            parts = vector.split("/")
+            for part in parts[1:]:  # Skip the CVSS version part
+                if ":" in part:
+                    key, value = part.split(":", 1)
+                    metrics[key.upper()] = value.upper()
         except:
             pass
-        return []
+        return metrics
 
     def _get_osv_severity(self, osv_vuln: Dict) -> tuple:
-        """Extract severity and score from OSV response"""
+        """Improved CVSS-based severity extraction from OSV"""
         severity = "UNKNOWN"
         score = 0.0
 
-        if "severity" in osv_vuln and isinstance(osv_vuln["severity"], list):
-            for sev in osv_vuln["severity"]:
-                if isinstance(sev, dict):
-                    sev_type = sev.get("type", "")
-                    score_str = sev.get("score", "")
+        if "severity" not in osv_vuln or not isinstance(osv_vuln["severity"], list):
+            return severity, score
 
-                    # Try to extract numeric score from CVSS vector
-                    if "CVSS" in sev_type and score_str:
-                        # OSV often returns full CVSS vector. Try to parse base score if present.
-                        # For simplicity, we map common high-impact vectors
-                        if "AV:N" in score_str and ("C:H" in score_str or "I:H" in score_str):
-                            severity = "CRITICAL"
-                            score = 9.0
-                        elif "AV:N" in score_str:
-                            severity = "HIGH"
-                            score = 7.5
-                        elif "AV:L" in score_str or "AV:A" in score_str:
-                            severity = "MEDIUM"
-                            score = 5.0
-                        else:
-                            severity = "MEDIUM"
-                            score = 5.0
-                        break
+        for sev in osv_vuln["severity"]:
+            if not isinstance(sev, dict):
+                continue
+
+            sev_type = sev.get("type", "")
+            score_str = sev.get("score", "")
+
+            if "CVSS" not in sev_type or not score_str:
+                continue
+
+            metrics = self._parse_cvss_vector(score_str)
+            if not metrics:
+                continue
+
+            # Extract key metrics
+            av = metrics.get("AV", "")      # Attack Vector
+            ac = metrics.get("AC", "")      # Attack Complexity
+            pr = metrics.get("PR", "")      # Privileges Required
+            ui = metrics.get("UI", "")      # User Interaction
+            s = metrics.get("S", "")        # Scope
+            c = metrics.get("C", "")        # Confidentiality
+            i = metrics.get("I", "")        # Integrity
+            a = metrics.get("A", "")        # Availability
+
+            # Improved severity logic
+            is_network = av == "N"
+            is_high_impact = (c == "H" or i == "H" or a == "H")
+            is_medium_impact = (c == "L" or i == "L" or a == "L")
+
+            if is_network and is_high_impact:
+                severity = "CRITICAL"
+                score = 9.0
+            elif is_network and (is_medium_impact or ac == "L"):
+                severity = "HIGH"
+                score = 7.5
+            elif is_high_impact:
+                severity = "HIGH"
+                score = 7.0
+            elif is_medium_impact:
+                severity = "MEDIUM"
+                score = 5.0
+            else:
+                severity = "MEDIUM"
+                score = 4.0
+
+            break  # Use first valid CVSS entry
+
         return severity, score
 
     def _convert_osv_to_cve(self, osv_vuln: Dict) -> Optional[CVEInfo]:
