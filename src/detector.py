@@ -17,7 +17,7 @@ class TechDetector:
     def __init__(self, timeout: int = 25, max_retries: int = 2, 
                   enable_cve: bool = False, nvd_api_key: Optional[str] = None,
                   stealth_mode: bool = True,
-                  min_confidence: float = 0.70):  # New: Minimum confidence to reduce false positives
+                  min_confidence: float = 0.70):
         self.timeout = timeout
         self.max_retries = max_retries
         self.enable_cve = enable_cve
@@ -99,6 +99,118 @@ class TechDetector:
         
         return html, headers, final_url, cookies
 
+    async def _scan_endpoints_for_versions(self, session: aiohttp.ClientSession, base_url: str, detected_techs: List[str]) -> Dict[str, str]:
+        """Enhanced automated version detection for CVE checking"""
+        versions: Dict[str, str] = {}
+        
+        if not detected_techs:
+            return versions
+        
+        framework_endpoints = set()
+        common_endpoints_set = set(COMMON_ENDPOINTS)
+        robots_endpoints = set()
+        sitemap_endpoints = set()
+        
+        for tech in detected_techs:
+            if tech in FRAMEWORK_ENDPOINTS:
+                framework_endpoints.update(FRAMEWORK_ENDPOINTS[tech])
+        
+        # Fetch robots.txt for additional endpoints
+        try:
+            robots_url = urljoin(base_url, '/robots.txt')
+            robots_response = await self._fetch_page(session, robots_url)
+            if robots_response[0]:
+                robots_content = robots_response[0]
+                sitemap_urls = re.findall(r'Sitemap:\s*(\S+)', robots_content, re.IGNORECASE)
+                sitemap_endpoints.update(sitemap_urls)
+                disallow_paths = re.findall(r'Disallow:\s*/([^\s]*)', robots_content, re.IGNORECASE)
+                for path in disallow_paths:
+                    if path:
+                        robots_endpoints.add(f"/{path}")
+        except:
+            pass
+        
+        # Parse sitemap.xml
+        try:
+            sitemap_url = urljoin(base_url, '/sitemap.xml')
+            sitemap_response = await self._fetch_page(session, sitemap_url)
+            if sitemap_response[0]:
+                sitemap_urls = re.findall(r'<loc>([^<]+)</loc>', sitemap_response[0])
+                for url in sitemap_urls:
+                    try:
+                        path = urlparse(url).path
+                        if path:
+                            sitemap_endpoints.add(path)
+                    except:
+                        pass
+        except:
+            pass
+        
+        # Prioritize endpoints for version discovery
+        endpoints_to_scan = list(robots_endpoints)[:20]
+        endpoints_to_scan.extend(list(framework_endpoints)[:8])
+        endpoints_to_scan.extend(list(common_endpoints_set)[:8])
+        endpoints_to_scan.extend(list(sitemap_endpoints)[:5])
+        
+        for endpoint in endpoints_to_scan:
+            try:
+                endpoint_url = urljoin(base_url, endpoint) if endpoint.startswith('/') else endpoint
+                if endpoint_url.startswith('http'):
+                    html, _, _, _ = await self._fetch_page(session, endpoint_url)
+                    if html and len(html) < 60000:
+                        for pattern, _ in ENDPOINT_VERSION_PATTERNS:
+                            matches = re.findall(pattern, html, re.IGNORECASE)
+                            if matches:
+                                for tech in detected_techs:
+                                    if tech.lower() in endpoint.lower() or any(kw in endpoint.lower() for kw in ['version', 'about', 'api', 'config']):
+                                        if tech not in versions:  # Don't overwrite if we already have a version
+                                            versions[tech] = matches[0]
+                                        break
+            except:
+                pass
+        
+        return versions
+
+    def _extract_scripts(self, soup: BeautifulSoup) -> Tuple[List[str], List[str]]:
+        script_srcs: List[str] = []
+        script_contents: List[str] = []
+        
+        for script in soup.find_all('script'):
+            src = script.get('src')
+            if src:
+                script_srcs.append(str(src))
+            if script.string:
+                script_contents.append(str(script.string))
+        
+        return script_srcs, script_contents
+
+    def _extract_css(self, soup: BeautifulSoup) -> List[str]:
+        css_hrefs: List[str] = []
+        
+        for link in soup.find_all('link', rel='stylesheet'):
+            href = link.get('href')
+            if href:
+                css_hrefs.append(str(href))
+        
+        for style in soup.find_all('style'):
+            if style.string:
+                css_hrefs.append(str(style.string))
+        
+        return css_hrefs
+
+    def _extract_meta(self, soup: BeautifulSoup) -> Dict[str, str]:
+        meta_tags: Dict[str, str] = {}
+        
+        for meta in soup.find_all('meta'):
+            name = meta.get('name') or meta.get('property') or meta.get('http-equiv') or ''
+            content = meta.get('content') or ''
+            if name and content:
+                name_str = str(name) if not isinstance(name, str) else name
+                content_str = str(content) if not isinstance(content, str) else content
+                meta_tags[name_str.lower()] = content_str
+        
+        return meta_tags
+
     def _check_pattern(self, pattern_info: Dict[str, Any], context: Dict[str, Any]) -> Tuple[bool, float]:
         pattern_type = pattern_info.get('type', '')
         pattern = pattern_info.get('pattern', '')
@@ -172,12 +284,10 @@ class TechDetector:
                 if matches > 0:
                     avg_confidence = total_confidence / matches
                     
-                    # Require at least 2 matches OR very high confidence from single strong pattern
                     if matches >= 2 or avg_confidence >= 0.90:
                         if matches > 1:
                             avg_confidence = min(0.99, avg_confidence + (matches - 1) * 0.04)
                         
-                        # Final filter: Only include if confidence meets minimum threshold
                         if avg_confidence >= self.min_confidence:
                             version = self.cve_lookup.extract_version(tech_name, context)
                             detected.append({
@@ -211,7 +321,72 @@ class TechDetector:
         detected_stacks.sort(key=lambda x: -x["confidence"])
         return detected_stacks
 
-    # ... (rest of the methods like _analyze_security_headers, analyze_url, etc. remain the same)
+    def _analyze_security_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
+        results: Dict[str, Any] = {
+            'present': [],
+            'missing': [],
+            'score': 0,
+            'max_score': 0,
+        }
+        
+        importance_weights = {'high': 3, 'medium': 2, 'low': 1}
+        
+        for header_key, header_info in SECURITY_HEADERS.items():
+            results['max_score'] += importance_weights.get(header_info['importance'], 1)
+            
+            if header_key in headers:
+                results['present'].append({
+                    'header': header_key,
+                    'value': headers[header_key][:100] if len(headers[header_key]) > 100 else headers[header_key]
+                })
+                results['score'] += importance_weights.get(header_info['importance'], 1)
+            else:
+                results['missing'].append({
+                    'header': header_key,
+                    'importance': header_info['importance'],
+                    'description': header_info['description']
+                })
+        
+        if results['max_score'] > 0:
+            percentage = (results['score'] / results['max_score']) * 100
+            if percentage >= 90:
+                results['grade'] = 'A+'
+            elif percentage >= 80:
+                results['grade'] = 'A'
+            elif percentage >= 70:
+                results['grade'] = 'B'
+            elif percentage >= 60:
+                results['grade'] = 'C'
+            elif percentage >= 50:
+                results['grade'] = 'D'
+            else:
+                results['grade'] = 'F'
+        else:
+            results['grade'] = 'N/A'
+        
+        return results
+
+    def _analyze_performance(self, html: str, headers: Dict[str, str]) -> Dict[str, Any]:
+        performance = {}
+        
+        if 'content-encoding' in headers:
+            performance['compression'] = headers['content-encoding']
+        
+        cache_headers = {}
+        for h in ['cache-control', 'expires', 'etag', 'last-modified']:
+            if h in headers:
+                cache_headers[h] = headers[h][:80]
+        if cache_headers:
+            performance['caching'] = cache_headers
+        
+        if 'loading="lazy"' in html.lower() or 'lazy' in html.lower():
+            performance['lazy_loading'] = True
+        
+        preload = re.findall(r'rel=["\']preload["\']', html, re.IGNORECASE)
+        if preload:
+            performance['preload'] = len(preload)
+        
+        return performance
 
     async def analyze_url(self, url: str) -> Dict[str, Any]:
         start_time = time.time()
@@ -258,14 +433,26 @@ class TechDetector:
                 title_tag = soup.find('title')
                 if title_tag:
                     result['page_info']['title'] = title_tag.get_text(strip=True)[:100]
+                
+                # Automated CVE checking when enabled
                 if self.enable_cve and technologies:
                     detected_names = [t['name'] for t in technologies]
+                    # First try to extract versions from initial page
+                    for tech in technologies:
+                        if not tech.get('version'):
+                            version = self.cve_lookup.extract_version(tech['name'], context)
+                            if version:
+                                tech['version'] = version
+                    
+                    # Then do deeper endpoint scanning for versions
                     versions = await self._scan_endpoints_for_versions(session, final_url, detected_names)
                     for tech in technologies:
-                        if tech['name'] in versions:
+                        if tech['name'] in versions and not tech.get('version'):
                             tech['version'] = versions[tech['name']]
+                    
                     cve_results = await self.cve_lookup.lookup_cves(technologies)
                     result['vulnerabilities'] = cve_results
+                
                 result['success'] = True
                 result['analysis_time'] = round(time.time() - start_time, 2)
         except Exception as e:
