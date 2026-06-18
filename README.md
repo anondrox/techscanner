@@ -69,12 +69,44 @@ Includes all previous + new additions:
 
 ## 🚀 Installation
 
+### Requirements
+- Python 3.8+
+- pip or uv package manager
+
+### From Repository
+
 ```bash
+# Clone the repository
 git clone https://github.com/anondrox/techscanner.git
 cd techscanner
+
+# Install dependencies
 pip install -r requirements.txt
-# or uv sync
+# or with uv:
+uv sync
 ```
+
+### Dependencies
+
+TechScanner requires the following Python packages:
+
+| Package          | Version   | Purpose                          |
+|------------------|-----------|----------------------------------|
+| `aiohttp`        | 3.13.2+   | Async HTTP client                |
+| `beautifulsoup4` | 4.14.2+   | HTML parsing                     |
+| `lxml`           | 6.0.2+    | Fast XML/HTML parser             |
+| `requests`       | 2.32.5+   | HTTP library                     |
+| `rich`           | 14.2.0+   | Beautiful terminal output        |
+| `nvdlib`         | 0.8.3+    | NIST NVD API wrapper             |
+| `trafilatura`    | 2.0.0+    | Web scraping & text extraction   |
+
+You can install them all at once with:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
 
 ## 💡 Usage (v2.0)
 
