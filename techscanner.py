@@ -27,10 +27,11 @@ def print_banner():
 [bold cyan]
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║                    🔍 T E C H S C A N N E R 🔍 v1.2                       ║
+║                    🔍 T E C H S C A N N E R 🔍 v2.0                       ║
 ║                                                                            ║
 ║              Advanced Technology Detection & Analysis Tool                 ║
 ║                      + CVE Vulnerability Scanning                          ║
+║                      + HTML Reports & Stack Insights                       ║
 ║                                                                            ║
 ║                        [Design by anondrox]                                ║
 ║                                                                            ║
@@ -38,17 +39,6 @@ def print_banner():
 
     🛡️  Security is not a destination, it's a journey...
     
-    🚨 "We've been hacked... again" - CTO, 3:47 AM              
-    💻 sudo rm -rf / # Oops... should've used --dry-run
-    🔓 "The password is 'Password123!' for maximum security"
-    😅 "Nobody's gonna find vulnerabilities in *my* code"
-    🎯 "It works on my machine™"
-    ⚠️  Me: *commits without running tests* | Prod: *immediately catches fire*
-    🐛 "It's not a bug, it's a feature!" - Every developer ever
-    📊 "WHAT?! An SQL injection? Impossible!"
-    🔐 "Security through obscurity" - Famous last words
-    💥 "We'll fix the CVEs in the next sprint... probably"
-
     Let's scan those technologies and find what's vulnerable! 🎭
 [/bold cyan]
     """
@@ -198,7 +188,6 @@ def display_single_result(result: dict, show_details: bool = True, show_cves: bo
                 conf_display = f"[{color}]{confidence*100:.0f}%[/{color}]"
                 version = tech.get('version') or 'Unknown'
                 
-                # Display CVE IDs or "No vulnerability detected"
                 cves = tech.get('cves', [])
                 if cves:
                     cve_display = "[red]" + ", ".join(cves[:2]) + ("[/red]" if len(cves) <= 2 else f" +{len(cves)-2} more[/red]")
@@ -380,6 +369,82 @@ def save_results(results: List[dict], output_path: str, format_type: str = 'json
     console.print(f"\n[green]Results saved to:[/green] {output_path}")
 
 
+def generate_html_report(results: List[dict], output_path: str):
+    """Generate a beautiful HTML report"""
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TechScanner Report - {len(results)} URL(s)</title>
+    <style>
+        body {{ font-family: system-ui, sans-serif; margin: 40px; background: #0f172a; color: #e2e8f0; }}
+        h1 {{ color: #22d3ee; }}
+        .card {{ background: #1e2937; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }}
+        table {{ width: 100%; border-collapse: collapse; }}
+        th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #334155; }}
+        th {{ background: #334155; color: #67e8f9; }}
+        .tech {{ color: #67e8f9; font-weight: 600; }}
+        .high {{ color: #ef4444; }}
+        .medium {{ color: #eab308; }}
+        .low {{ color: #22c55e; }}
+        .confidence-high {{ color: #22c55e; }}
+        .confidence-medium {{ color: #eab308; }}
+        .confidence-low {{ color: #ef4444; }}
+    </style>
+</head>
+<body>
+    <h1>🔍 TechScanner v2.0 Report</h1>
+    <p>Generated for {len(results)} URL(s)</p>
+    """
+    
+    for result in results:
+        if not result.get('success'):
+            continue
+        
+        url = result.get('final_url', result.get('url', ''))
+        techs = result.get('technologies', [])
+        security = result.get('security', {})
+        vulns = result.get('vulnerabilities', {})
+        
+        html_content += f"""
+        <div class="card">
+            <h2>🌐 {url}</h2>
+            <p><strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s | <strong>Technologies:</strong> {len(techs)}</p>
+            
+            <h3>Detected Technologies</h3>
+            <table>
+                <tr><th>Technology</th><th>Version</th><th>Category</th><th>Confidence</th></tr>
+        """
+        
+        for tech in sorted(techs, key=lambda x: -x.get('confidence', 0)):
+            conf = tech.get('confidence', 0)
+            conf_class = 'confidence-high' if conf >= 0.8 else 'confidence-medium' if conf >= 0.5 else 'confidence-low'
+            html_content += f"""
+                <tr>
+                    <td class="tech">{tech['name']}</td>
+                    <td>{tech.get('version', 'Unknown')}</td>
+                    <td>{tech.get('category', '')}</td>
+                    <td class="{conf_class}">{conf*100:.0f}%</td>
+                </tr>
+            """
+        
+        html_content += """
+            </table>
+        </div>
+        """
+    
+    html_content += """
+</body>
+</html>
+    """
+    
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    
+    console.print(f"\n[green]✅ HTML report saved to:[/green] {output_path}")
+
+
 async def run_analysis(urls: List[str], concurrency: int, show_details: bool, 
                        enable_cve: bool = False, nvd_api_key: Optional[str] = None):
     detector = TechDetector(timeout=20, enable_cve=enable_cve, nvd_api_key=nvd_api_key)
@@ -426,33 +491,28 @@ async def run_analysis(urls: List[str], concurrency: int, show_details: bool,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="TechScanner - Advanced Technology Detection Tool with CVE Scanning",
+        description="TechScanner v2.0 - Advanced Technology Detection with CVE + HTML Reports",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s https://example.com                   # Analyze a single URL
-  %(prog)s https://example.com --cve             # Analyze with CVE vulnerability scan
-  %(prog)s https://example.com -o results.json   # Save results to JSON
-  %(prog)s -f urls.txt                           # Batch analyze from file
-  %(prog)s -f urls.txt -c 10 --cve               # Batch with CVE scanning
-  %(prog)s https://example.com --brief           # Show only technologies
+  %(prog)s https://example.com
+  %(prog)s https://example.com --cve --html report.html
+  %(prog)s -f urls.txt --json -o results.json
 
-CVE Scanning:
-  Use --cve to enable vulnerability scanning via the NIST NVD database.
-  Set NVD_API_KEY environment variable for faster API access (10x rate limit).
-  Get a free API key at: https://nvd.nist.gov/developers/request-an-api-key
+New in v2.0: --html for beautiful reports, improved accuracy, 250+ techs
         """
     )
     
     parser.add_argument('url', nargs='?', help='URL to analyze')
     parser.add_argument('-f', '--file', help='File containing URLs (one per line)')
-    parser.add_argument('-o', '--output', help='Output file path (supports .json and .csv)')
+    parser.add_argument('-o', '--output', help='Output file path (supports .json, .csv, .html)')
     parser.add_argument('-c', '--concurrency', type=int, default=5, help='Number of concurrent requests (default: 5)')
-    parser.add_argument('--cve', action='store_true', help='Enable CVE vulnerability scanning (uses NIST NVD API)')
+    parser.add_argument('--cve', action='store_true', help='Enable CVE vulnerability scanning')
     parser.add_argument('--brief', action='store_true', help='Show only technologies without security/performance details')
     parser.add_argument('--json', action='store_true', help='Output raw JSON to stdout')
+    parser.add_argument('--html', help='Generate HTML report (e.g. --html report.html)')
     parser.add_argument('--no-banner', action='store_true', help='Hide the banner')
-    parser.add_argument('-v', '--version', action='version', version='TechScanner 1.2.0')
+    parser.add_argument('-v', '--version', action='version', version='TechScanner 2.0.0')
     
     args = parser.parse_args()
     
@@ -507,9 +567,13 @@ CVE Scanning:
         
         if args.json:
             print(json.dumps(results, indent=2))
+        elif args.html:
+            generate_html_report(results, args.html)
         elif args.output:
             if args.output.endswith('.csv'):
                 save_results(results, args.output, 'csv')
+            elif args.output.endswith('.html'):
+                generate_html_report(results, args.output)
             else:
                 save_results(results, args.output, 'json')
     except KeyboardInterrupt:
