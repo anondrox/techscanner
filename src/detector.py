@@ -16,14 +16,15 @@ from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_EN
 class TechDetector:
     def __init__(self, timeout: int = 25, max_retries: int = 2, 
                   enable_cve: bool = False, nvd_api_key: Optional[str] = None,
-                  stealth_mode: bool = True):
+                  stealth_mode: bool = True,
+                  min_confidence: float = 0.70):  # New: Minimum confidence to reduce false positives
         self.timeout = timeout
         self.max_retries = max_retries
         self.enable_cve = enable_cve
         self.stealth_mode = stealth_mode
+        self.min_confidence = min_confidence
         self.cve_lookup = CVELookup(api_key=nvd_api_key if enable_cve else None)
         
-        # Highly realistic modern User-Agents
         self.user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -34,9 +35,7 @@ class TechDetector:
         ]
 
     def _get_headers(self) -> Dict[str, str]:
-        """Generate highly realistic browser headers for stealth"""
         ua = random.choice(self.user_agents)
-        
         headers = {
             "User-Agent": ua,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -50,16 +49,12 @@ class TechDetector:
             "Sec-Fetch-User": "?1",
             "Cache-Control": "max-age=0",
         }
-        
-        # Randomly add modern client hints
         if random.random() > 0.4:
             headers["Sec-CH-UA"] = '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"'
             headers["Sec-CH-UA-Mobile"] = "?0"
             headers["Sec-CH-UA-Platform"] = random.choice(['"Windows"', '"macOS"', '"Linux"'])
-        
         if random.random() > 0.6:
             headers["DNT"] = "1"
-            
         return headers
 
     def _normalize_url(self, url: str) -> str:
@@ -69,7 +64,6 @@ class TechDetector:
 
     async def _stealth_delay(self):
         if self.stealth_mode:
-            # Variable delay to look more human
             delay = random.uniform(1.2, 3.5)
             await asyncio.sleep(delay)
 
@@ -82,9 +76,7 @@ class TechDetector:
         for attempt in range(self.max_retries):
             try:
                 await self._stealth_delay()
-                
                 ssl_context = ssl.create_default_context(cafile=certifi.where())
-                
                 async with session.get(
                     url,
                     headers=self._get_headers(),
@@ -107,7 +99,119 @@ class TechDetector:
         
         return html, headers, final_url, cookies
 
-    # ... (rest of the methods remain the same for brevity in this update)
+    def _check_pattern(self, pattern_info: Dict[str, Any], context: Dict[str, Any]) -> Tuple[bool, float]:
+        pattern_type = pattern_info.get('type', '')
+        pattern = pattern_info.get('pattern', '')
+        value_pattern = pattern_info.get('value', '')
+        
+        if not pattern:
+            return False, 0.0
+        
+        try:
+            if pattern_type == 'script':
+                for src in context.get('script_srcs', []):
+                    if re.search(pattern, str(src), re.IGNORECASE):
+                        return True, 0.90
+            elif pattern_type == 'script_content':
+                for content in context.get('script_contents', []):
+                    if re.search(pattern, str(content), re.IGNORECASE):
+                        return True, 0.85
+            elif pattern_type == 'css':
+                for css in context.get('css_hrefs', []):
+                    if re.search(pattern, str(css), re.IGNORECASE):
+                        return True, 0.88
+            elif pattern_type == 'html':
+                html = context.get('html', '')
+                if re.search(pattern, str(html), re.IGNORECASE):
+                    return True, 0.75
+            elif pattern_type == 'meta':
+                meta_tags = context.get('meta_tags', {})
+                if pattern in meta_tags:
+                    if value_pattern:
+                        if re.search(value_pattern, str(meta_tags[pattern]), re.IGNORECASE):
+                            return True, 0.95
+                    else:
+                        return True, 0.88
+            elif pattern_type == 'header':
+                headers = context.get('headers', {})
+                header_name = str(pattern).lower()
+                if header_name in headers:
+                    if value_pattern:
+                        if re.search(value_pattern, str(headers[header_name]), re.IGNORECASE):
+                            return True, 0.95
+                    else:
+                        return True, 0.82
+            elif pattern_type == 'cookie':
+                cookies = context.get('cookies', [])
+                for cookie in cookies:
+                    if re.search(pattern, str(cookie), re.IGNORECASE):
+                        return True, 0.80
+            elif pattern_type == 'url':
+                url = context.get('url', '')
+                if re.search(pattern, str(url), re.IGNORECASE):
+                    return True, 0.65
+        except re.error:
+            pass
+        return False, 0.0
+
+    def _detect_technologies(self, context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        detected: List[Dict[str, Any]] = []
+        
+        for category, technologies in FINGERPRINTS.items():
+            for tech_name, tech_info in technologies.items():
+                patterns = tech_info.get('patterns', [])
+                matches = 0
+                total_confidence = 0.0
+                
+                for pattern_info in patterns:
+                    matched, confidence = self._check_pattern(pattern_info, context)
+                    if matched:
+                        matches += 1
+                        total_confidence += confidence
+                
+                if matches > 0:
+                    avg_confidence = total_confidence / matches
+                    
+                    # Require at least 2 matches OR very high confidence from single strong pattern
+                    if matches >= 2 or avg_confidence >= 0.90:
+                        if matches > 1:
+                            avg_confidence = min(0.99, avg_confidence + (matches - 1) * 0.04)
+                        
+                        # Final filter: Only include if confidence meets minimum threshold
+                        if avg_confidence >= self.min_confidence:
+                            version = self.cve_lookup.extract_version(tech_name, context)
+                            detected.append({
+                                'name': tech_name,
+                                'category': tech_info.get('category', category),
+                                'confidence': round(avg_confidence, 2),
+                                'website': tech_info.get('website', ''),
+                                'matches': matches,
+                                'version': version,
+                            })
+        
+        detected.sort(key=lambda x: (-x['confidence'], x['name']))
+        return detected
+
+    def detect_tech_stacks(self, technologies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        if not technologies:
+            return []
+        tech_names = {t['name'] for t in technologies}
+        detected_stacks = []
+        for stack_name, stack_info in TECH_STACKS.items():
+            core_techs = set(stack_info["core"])
+            if core_techs.issubset(tech_names):
+                matched_recommended = [tech for tech in stack_info.get("recommended", []) if tech in tech_names]
+                detected_stacks.append({
+                    "name": stack_name,
+                    "description": stack_info.get("description", ""),
+                    "core_technologies": list(core_techs),
+                    "matched_recommended": matched_recommended,
+                    "confidence": 0.95 if len(matched_recommended) > 0 else 0.85
+                })
+        detected_stacks.sort(key=lambda x: -x["confidence"])
+        return detected_stacks
+
+    # ... (rest of the methods like _analyze_security_headers, analyze_url, etc. remain the same)
 
     async def analyze_url(self, url: str) -> Dict[str, Any]:
         start_time = time.time()
@@ -127,19 +231,15 @@ class TechDetector:
         try:
             async with aiohttp.ClientSession() as session:
                 html, headers, final_url, cookies = await self._fetch_page(session, self._normalize_url(url))
-                
                 if not html:
                     result['error'] = 'Failed to fetch page'
                     result['analysis_time'] = round(time.time() - start_time, 2)
                     return result
-                
                 result['final_url'] = final_url
-                
                 soup = BeautifulSoup(html, 'lxml')
                 script_srcs, script_contents = self._extract_scripts(soup)
                 css_hrefs = self._extract_css(soup)
                 meta_tags = self._extract_meta(soup)
-                
                 context = {
                     'html': html,
                     'headers': headers,
@@ -150,18 +250,14 @@ class TechDetector:
                     'cookies': cookies,
                     'url': final_url
                 }
-                
                 technologies = self._detect_technologies(context)
                 result['technologies'] = technologies
                 result['tech_stacks'] = self.detect_tech_stacks(technologies)
-                
                 result['security'] = self._analyze_security_headers(headers)
                 result['performance'] = self._analyze_performance(html, headers)
-                
                 title_tag = soup.find('title')
                 if title_tag:
                     result['page_info']['title'] = title_tag.get_text(strip=True)[:100]
-                
                 if self.enable_cve and technologies:
                     detected_names = [t['name'] for t in technologies]
                     versions = await self._scan_endpoints_for_versions(session, final_url, detected_names)
@@ -170,22 +266,17 @@ class TechDetector:
                             tech['version'] = versions[tech['name']]
                     cve_results = await self.cve_lookup.lookup_cves(technologies)
                     result['vulnerabilities'] = cve_results
-                
                 result['success'] = True
                 result['analysis_time'] = round(time.time() - start_time, 2)
-                
         except Exception as e:
             result['error'] = str(e)
             result['analysis_time'] = round(time.time() - start_time, 2)
-        
         return result
 
     async def analyze_urls(self, urls: List[str], concurrency: int = 2) -> List[Dict[str, Any]]:
         semaphore = asyncio.Semaphore(concurrency)
-        
         async def analyze_with_semaphore(url):
             async with semaphore:
                 return await self.analyze_url(url)
-        
         tasks = [analyze_with_semaphore(url) for url in urls]
         return await asyncio.gather(*tasks, return_exceptions=False)
