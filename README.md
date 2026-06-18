@@ -18,139 +18,148 @@
 
 ## 🎯 Features
 
-### Technology Detection
+### 🔍 Technology Detection
 - **250+ Technologies** across 15+ categories
-- **8 Detection Methods** (including improved JS variable detection)
-- **Weighted Confidence Scoring** for higher accuracy
-- **Advanced Version Detection** from multiple sources (headers, meta, JSON, scripts, endpoints)
-- **Tech Stack Insights** - Understand relationships between technologies
+- **8 powerful detection methods** (headers, scripts, HTML, meta, cookies, URLs, CSS, and JS variables)
+- **Weighted Confidence Scoring** — more matches = higher accuracy
+- **Advanced Version Detection** from headers, meta tags, JSON, scripts, and endpoints
 
-### Security & Performance
+### 🛡️ Security & Analysis
 - **Security Header Grading** (A+ to F)
-- **Performance Indicators** analysis
-- **Vulnerability Summary** with risk scoring
+- **Performance Indicators** (compression, caching, lazy loading, preload)
+- **CVE Vulnerability Scanning** via NIST NVD with severity ratings
 
-### CVE Vulnerability Scanning
-- NIST NVD API Integration
-- Severity ratings and CVSS scores
-- Version-specific matching
-
-### Output & Reporting
-- Beautiful terminal output with Rich
-- JSON, CSV, and **new HTML reports**
-- Batch processing with concurrency
+### 📊 Output & Reporting
+- Beautiful Rich terminal output
+- Export to **JSON**, **CSV**, and **HTML reports**
+- Batch scanning with concurrency control
 
 ---
 
-## 🆕 New in v2.0 (Major Upgrade)
+## 🆕 What's New in v2.0
 
-- **Expanded Fingerprints**: +50 new technologies including AI/ML tools, more modern frameworks, e-commerce platforms
-- **Improved Confidence System**: Multi-pattern weighted scoring
-- **Better Version Extraction**: Enhanced regex + endpoint scanning + JS variable parsing
-- **HTML Report Generation**: `--html report.html` for beautiful shareable reports
-- **Tech Stack Analysis**: Detects common stacks (e.g., "Next.js + Tailwind + Vercel")
-- **Performance & Accuracy Improvements**
+- Massive expansion to **250+ technologies** (including AI/ML tools)
+- New **AI & Machine Learning** detection category
+- **HTML Report Generation** (`--html report.html`)
+- Significantly improved confidence scoring and version detection
+- Better support for modern frameworks and headless CMS
+- Cleaner, more professional documentation
 
 ---
 
-## 📋 Technology Categories (v2.0)
+## 📋 Supported Technologies (v2.0)
 
-Includes all previous + new additions:
-- **AI & Machine Learning**: OpenAI, LangChain.js, Hugging Face Transformers, TensorFlow.js, PyTorch.js
-- **JavaScript Frameworks & Libraries**: React, Vue, Angular, Next.js, Nuxt, SvelteKit, Solid.js, Qwik, Remix, TanStack Query, Zustand, Redux, Jotai, and more
-- **CSS & UI**: Tailwind, Bootstrap, Chakra, DaisyUI, shadcn/ui hints, etc.
-- **Headless CMS & E-commerce**: Strapi, Sanity, Medusa, BigCommerce, Saleor
-- **Backend & Languages**: Go, Rust, NestJS, FastAPI, Spring Boot hints
-- **Auth & Security**: Auth0, Clerk, Supabase, Firebase Auth, reCAPTCHA v3
-- **Monitoring & Observability**: Sentry, Datadog RUM, New Relic, Prometheus hints
-- **And 200+ more...**
+**Major Categories:**
+
+- **AI & Machine Learning**: OpenAI, LangChain, Hugging Face, TensorFlow.js
+- **JavaScript Frameworks**: React, Vue.js, Angular, Next.js, Nuxt.js, SvelteKit, Solid.js, Qwik, Remix, and more
+- **State Management**: Redux, Zustand, Jotai, TanStack Query
+- **CSS & UI Frameworks**: Tailwind CSS, Bootstrap, Chakra UI, DaisyUI, shadcn/ui
+- **CMS & Headless CMS**: WordPress, Strapi, Sanity, Contentful, Payload, Directus, Medusa, BigCommerce
+- **Backend & Languages**: Node.js, Python, Go, Rust, PHP, Java, NestJS, FastAPI, Django, Laravel
+- **Auth & Security**: Auth0, Clerk, Supabase Auth, Firebase Auth, reCAPTCHA
+- **Monitoring**: Sentry, Datadog, New Relic
+- **Hosting & CDN**: Vercel, Netlify, Cloudflare, AWS, Google Cloud
+- **And many more** (analytics, payments, video, social SDKs, build tools...)
 
 ---
 
 ## 🚀 Installation
 
 ### Requirements
-- Python 3.8+
-- pip or uv package manager
+- Python **3.8+**
+- `pip` or `uv`
 
-### From Repository
+### Quick Install
 
 ```bash
-# Clone the repository
 git clone https://github.com/anondrox/techscanner.git
 cd techscanner
 
-# Install dependencies
+# Install all dependencies
 pip install -r requirements.txt
-# or with uv:
+
+# Or with uv (recommended for speed)
 uv sync
 ```
 
 ### Dependencies
 
-TechScanner requires the following Python packages:
-
-| Package          | Version   | Purpose                          |
-|------------------|-----------|----------------------------------|
-| `aiohttp`        | 3.13.2+   | Async HTTP client                |
-| `beautifulsoup4` | 4.14.2+   | HTML parsing                     |
-| `lxml`           | 6.0.2+    | Fast XML/HTML parser             |
-| `requests`       | 2.32.5+   | HTTP library                     |
-| `rich`           | 14.2.0+   | Beautiful terminal output        |
-| `nvdlib`         | 0.8.3+    | NIST NVD API wrapper             |
-| `trafilatura`    | 2.0.0+    | Web scraping & text extraction   |
-
-You can install them all at once with:
-
-```bash
-pip install -r requirements.txt
-```
+| Package           | Purpose                              |
+|-------------------|--------------------------------------|
+| `aiohttp`         | Async HTTP requests                  |
+| `beautifulsoup4`  | HTML parsing                         |
+| `lxml`            | Fast XML/HTML parser                 |
+| `requests`        | HTTP library                         |
+| `rich`            | Beautiful terminal UI                |
+| `nvdlib`          | NIST NVD CVE lookup                  |
+| `trafilatura`     | Web content extraction               |
 
 ---
 
-## 💡 Usage (v2.0)
+## 💡 Usage
 
+### Basic Scan
 ```bash
-# Basic scan
 python techscanner.py https://example.com
-
-# With CVE + HTML report
-python techscanner.py https://example.com --cve --html report.html
-
-# Batch + JSON
-python techscanner.py -f urls.txt --json -o results.json
-
-# Full featured
-python techscanner.py https://diageoindia.com --cve --html stack-report.html
 ```
 
-New flags:
-- `--html FILE` : Generate beautiful HTML report
-- `--stack` : Show tech stack insights (default in detailed mode)
+### With CVE Scanning + HTML Report (Recommended)
+```bash
+python techscanner.py https://example.com --cve --html report.html
+```
+
+### Batch Scanning
+```bash
+python techscanner.py -f urls.txt --cve -c 10
+```
+
+### Export Options
+```bash
+python techscanner.py https://example.com -o results.json
+python techscanner.py https://example.com -o results.csv
+python techscanner.py https://example.com --html report.html
+python techscanner.py https://example.com --json
+```
+
+### Useful Flags
+| Flag              | Description                              |
+|-------------------|------------------------------------------|
+| `--cve`           | Enable CVE vulnerability scanning        |
+| `--html FILE`     | Generate beautiful HTML report           |
+| `--brief`         | Show only technologies (no security)     |
+| `-c`, `--concurrency` | Number of concurrent scans          |
+| `-f FILE`         | Scan multiple URLs from a file           |
+| `-o FILE`         | Save output to JSON or CSV               |
 
 ---
 
 ## 📝 Changelog
 
-### v2.0 (June 2026) - Major Upgrade
-- Massive fingerprint expansion (250+ technologies)
-- Weighted confidence scoring
-- Advanced multi-source version detection
-- HTML report generation
-- Tech stack relationship detection
-- Improved CVE relevance
-- Performance optimizations
+### v2.0 (June 2026)
+- Major upgrade with 250+ technologies
+- New AI/ML detection category
+- HTML report generation added
+- Improved confidence scoring & version detection
+- Better documentation and structure
 
-### v1.3 (June 2026)
-- Added 70+ new fingerprints (Go, Rust, SvelteKit, Solid.js, Qwik, Remix, NestJS, Strapi, Sanity, etc.)
-- Improved patterns and version extraction
+### v1.3
+- Added 70+ new fingerprints (Go, Rust, SvelteKit, Solid.js, Qwik, etc.)
 
-(Previous versions in git history)
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Add new technology fingerprints
+- Improve version detection patterns
+- Enhance HTML report design
+- Report bugs or suggest features
 
 ---
 
 ## 📝 License
 
-MIT License
+This project is licensed under the **MIT License**.
 
 Made with ❤️ by anondrox
