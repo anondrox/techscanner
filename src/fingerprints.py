@@ -202,7 +202,10 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "html", "pattern": r"graphql"},
                 {"type": "script_content", "pattern": r"graphql|ApolloClient|useQuery"},
-                {"type": "url", "pattern": r"/graphql"}
+                {"type": "url", "pattern": r"/graphql"},
+                {"type": "url", "pattern": r"/graphiql"},
+                {"type": "url", "pattern": r"/playground"},
+                {"type": "html", "pattern": r"__schema"}
             ],
             "category": "GraphQL", "website": "https://graphql.org"
         },
@@ -210,18 +213,39 @@ FINGERPRINTS = {
             "patterns": [ {"type": "script_content", "pattern": r"@apollo/client|ApolloProvider"} ],
             "category": "GraphQL", "website": "https://www.apollographql.com"
         },
+        "GraphQL Introspection": {
+            "patterns": [
+                {"type": "url", "pattern": r"/graphql"},
+                {"type": "html", "pattern": r"__schema|__type|__typename"},
+                {"type": "script_content", "pattern": r"introspectionQuery|getIntrospectionQuery"}
+            ],
+            "category": "GraphQL Introspection", "website": "https://graphql.org/learn/introspection/"
+        },
     },
     "api": {
         "REST API": {
             "patterns": [
                 {"type": "html", "pattern": r"/api/|rest|swagger|openapi"},
-                {"type": "url", "pattern": r"/api/"}
+                {"type": "url", "pattern": r"/api/"},
+                {"type": "url", "pattern": r"/v1/|/v2/|/v3/"}
             ],
             "category": "API / REST", "website": "https://restfulapi.net"
         },
         "Swagger / OpenAPI": {
             "patterns": [ {"type": "html", "pattern": r"swagger|openapi"} ],
             "category": "API Documentation", "website": "https://swagger.io"
+        },
+        "API Gateway - Kong": {
+            "patterns": [ {"type": "header", "pattern": r"x-kong-proxy-latency|x-kong-upstream-latency"} ],
+            "category": "API Gateway", "website": "https://konghq.com"
+        },
+        "API Gateway - AWS": {
+            "patterns": [ {"type": "header", "pattern": r"x-amzn-requestid|x-amz-apigw-id"} ],
+            "category": "API Gateway", "website": "https://aws.amazon.com/api-gateway/"
+        },
+        "API Gateway - Apigee": {
+            "patterns": [ {"type": "header", "pattern": r"x-apigee"} ],
+            "category": "API Gateway", "website": "https://cloud.google.com/apigee"
         },
     },
 }
