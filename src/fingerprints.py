@@ -135,6 +135,30 @@ FINGERPRINTS = {
             "category": "Hosting / CDN", "website": "https://www.cloudflare.com"
         },
     },
+    "payment": {
+        "Stripe": {
+            "patterns": [ {"type": "script", "pattern": r"stripe\.com|js\.stripe\.com"} ],
+            "category": "Payment", "website": "https://stripe.com"
+        },
+        "PayPal": {
+            "patterns": [ {"type": "script", "pattern": r"paypal\.com|paypalobjects"} ],
+            "category": "Payment", "website": "https://www.paypal.com"
+        },
+        "Razorpay": {
+            "patterns": [ {"type": "script", "pattern": r"razorpay"} ],
+            "category": "Payment", "website": "https://razorpay.com"
+        },
+    },
+    "build_tools": {
+        "Vite": {
+            "patterns": [ {"type": "script", "pattern": r"vite|/@vite/"} ],
+            "category": "Build Tool", "website": "https://vitejs.dev"
+        },
+        "Webpack": {
+            "patterns": [ {"type": "script", "pattern": r"webpack"} ],
+            "category": "Build Tool", "website": "https://webpack.js.org"
+        },
+    },
 }
 
 SECURITY_HEADERS = {
