@@ -19,7 +19,6 @@ class CVEInfo:
     references: List[str]
 
 
-# Framework-specific endpoints
 FRAMEWORK_ENDPOINTS = {
     "WordPress": [r"/wp-json/", r"/wp-includes/version.php", r"/readme.html"],
     "Drupal": [r"/CHANGELOG", r"/admin/"],
@@ -124,47 +123,65 @@ class CVELookup:
 
     # ==================== OSV.dev Integration ====================
     def _query_osv(self, package_name: str, version: str, ecosystem: str = "npm") -> List[Dict]:
-        """Query OSV.dev API for vulnerabilities"""
         try:
             url = "https://api.osv.dev/v1/query"
             payload = {
-                "package": {
-                    "name": package_name,
-                    "ecosystem": ecosystem
-                },
+                "package": {"name": package_name, "ecosystem": ecosystem},
                 "version": version
             }
             response = requests.post(url, json=payload, timeout=10)
             if response.status_code == 200:
-                data = response.json()
-                return data.get("vulns", [])
-        except Exception:
+                return response.json().get("vulns", [])
+        except:
             pass
         return []
 
+    def _get_osv_severity(self, osv_vuln: Dict) -> tuple:
+        """Extract severity and score from OSV response"""
+        severity = "UNKNOWN"
+        score = 0.0
+
+        if "severity" in osv_vuln and isinstance(osv_vuln["severity"], list):
+            for sev in osv_vuln["severity"]:
+                if isinstance(sev, dict):
+                    sev_type = sev.get("type", "")
+                    score_str = sev.get("score", "")
+
+                    # Try to extract numeric score from CVSS vector
+                    if "CVSS" in sev_type and score_str:
+                        # OSV often returns full CVSS vector. Try to parse base score if present.
+                        # For simplicity, we map common high-impact vectors
+                        if "AV:N" in score_str and ("C:H" in score_str or "I:H" in score_str):
+                            severity = "CRITICAL"
+                            score = 9.0
+                        elif "AV:N" in score_str:
+                            severity = "HIGH"
+                            score = 7.5
+                        elif "AV:L" in score_str or "AV:A" in score_str:
+                            severity = "MEDIUM"
+                            score = 5.0
+                        else:
+                            severity = "MEDIUM"
+                            score = 5.0
+                        break
+        return severity, score
+
     def _convert_osv_to_cve(self, osv_vuln: Dict) -> Optional[CVEInfo]:
-        """Convert OSV vulnerability to CVEInfo format"""
         try:
             cve_id = osv_vuln.get("id", "OSV-?")
             summary = osv_vuln.get("summary", "") or ""
             details = osv_vuln.get("details", "") or ""
             description = (summary + ". " + details)[:300]
-            
-            # Try to extract severity
-            severity = "UNKNOWN"
-            score = 0.0
-            if "severity" in osv_vuln:
-                sev = osv_vuln["severity"]
-                if isinstance(sev, list) and sev:
-                    severity = sev[0].get("type", "UNKNOWN")
-            
+
+            severity, score = self._get_osv_severity(osv_vuln)
+
             published = osv_vuln.get("published", "")[:10] if osv_vuln.get("published") else ""
-            
+
             refs = []
             for ref in osv_vuln.get("references", [])[:3]:
                 if isinstance(ref, dict):
                     refs.append(ref.get("url", ""))
-            
+
             return CVEInfo(
                 cve_id=cve_id,
                 severity=severity,
@@ -185,7 +202,7 @@ class CVELookup:
         cves: List[CVEInfo] = []
         cpe_info = CPE_MAPPING.get(tech_name)
         
-        # === Try NVD first ===
+        # NVD
         if cpe_info:
             try:
                 elapsed = time.time() - self._last_request
@@ -210,10 +227,8 @@ class CVELookup:
                     pass
                 
                 for cve in results:
-                    if len(cves) >= max_results:
-                        break
-                    if not self._is_relevant_cve(cve, tech_name, cpe_info):
-                        continue
+                    if len(cves) >= max_results: break
+                    if not self._is_relevant_cve(cve, tech_name, cpe_info): continue
                     try:
                         severity = "UNKNOWN"
                         score = 0.0
@@ -242,10 +257,9 @@ class CVELookup:
             except:
                 pass
         
-        # === OSV.dev Fallback / Enrichment ===
+        # OSV.dev
         if version and len(cves) < max_results:
             try:
-                # Map common tech names to OSV ecosystems
                 ecosystem_map = {
                     "React": ("react", "npm"),
                     "Vue.js": ("vue", "npm"),
@@ -256,13 +270,11 @@ class CVELookup:
                     "Django": ("django", "PyPI"),
                     "Flask": ("flask", "PyPI"),
                 }
-                
                 if tech_name in ecosystem_map:
                     pkg_name, ecosystem = ecosystem_map[tech_name]
                     osv_results = self._query_osv(pkg_name, version, ecosystem)
                     for osv_vuln in osv_results:
-                        if len(cves) >= max_results:
-                            break
+                        if len(cves) >= max_results: break
                         cve_info = self._convert_osv_to_cve(osv_vuln)
                         if cve_info:
                             cves.append(cve_info)
