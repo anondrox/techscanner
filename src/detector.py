@@ -4,16 +4,16 @@ import aiohttp
 from bs4 import BeautifulSoup
 from typing import Dict, List, Any, Optional, Tuple
 from urllib.parse import urlparse, urljoin
-from concurrent.futures import ThreadPoolExecutor
 import time
 import ssl
 import certifi
+import random
 
 from .fingerprints import FINGERPRINTS, SECURITY_HEADERS
 from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_ENDPOINTS, ENDPOINT_VERSION_PATTERNS, COMMON_ENDPOINTS
 
 
-# Common Tech Stack Definitions (Expanded in v2.1)
+# Common Tech Stack Definitions
 TECH_STACKS = {
     "Next.js Stack": {
         "core": ["Next.js", "React"],
@@ -89,34 +89,56 @@ TECH_STACKS = {
 
 
 class TechDetector:
-    def __init__(self, timeout: int = 15, max_retries: int = 2, 
-                  enable_cve: bool = False, nvd_api_key: Optional[str] = None):
+    def __init__(self, timeout: int = 20, max_retries: int = 2, 
+                  enable_cve: bool = False, nvd_api_key: Optional[str] = None,
+                  stealth_mode: bool = True):
         self.timeout = timeout
         self.max_retries = max_retries
         self.enable_cve = enable_cve
+        self.stealth_mode = stealth_mode
         self.cve_lookup = CVELookup(api_key=nvd_api_key if enable_cve else None)
+        
+        # Realistic & Recent User-Agents (Stealth)
         self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
         ]
 
     def _get_headers(self) -> Dict[str, str]:
-        import random
-        return {
+        headers = {
             "User-Agent": random.choice(self.user_agents),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive",
             "Upgrade-Insecure-Requests": "1",
-            "Cache-Control": "no-cache",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Cache-Control": "max-age=0",
         }
+        
+        # Add more stealth headers randomly
+        if random.random() > 0.5:
+            headers["DNT"] = "1"
+        if random.random() > 0.7:
+            headers["Sec-CH-UA-Platform"] = random.choice(['"Windows"', '"macOS"', '"Linux"'])
+            
+        return headers
 
     def _normalize_url(self, url: str) -> str:
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         return url.rstrip('/')
+
+    async def _stealth_delay(self):
+        """Add random delay for stealth"""
+        if self.stealth_mode:
+            await asyncio.sleep(random.uniform(0.8, 2.5))
 
     async def _fetch_page(self, session: aiohttp.ClientSession, url: str) -> Tuple[Optional[str], Dict[str, str], Optional[str], List[str]]:
         html = None
@@ -126,6 +148,8 @@ class TechDetector:
         
         for attempt in range(self.max_retries):
             try:
+                await self._stealth_delay()  # Stealth delay before request
+                
                 ssl_context = ssl.create_default_context(cafile=certifi.where())
                 async with session.get(
                     url,
@@ -145,7 +169,7 @@ class TechDetector:
             except Exception:
                 if attempt == self.max_retries - 1:
                     return None, {}, None, []
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(random.uniform(1.0, 3.0))
         
         return html, headers, final_url, cookies
 
@@ -156,29 +180,24 @@ class TechDetector:
         if not detected_techs:
             return versions
         
-        # Collect endpoints to scan from multiple sources
         framework_endpoints = set()
         common_endpoints_set = set(COMMON_ENDPOINTS)
         robots_endpoints = set()
         sitemap_endpoints = set()
         
-        # 1. Add framework-specific endpoints
         for tech in detected_techs:
             if tech in FRAMEWORK_ENDPOINTS:
                 framework_endpoints.update(FRAMEWORK_ENDPOINTS[tech])
         
-        # 2. Fetch robots.txt for Disallow paths and sitemap URLs
-        robots_content = None
+        # Fetch robots.txt
         try:
             robots_url = urljoin(base_url, '/robots.txt')
             robots_response = await self._fetch_page(session, robots_url)
             if robots_response[0]:
                 robots_content = robots_response[0]
-                # Extract sitemap URLs
                 sitemap_urls = re.findall(r'Sitemap:\s*(\S+)', robots_content, re.IGNORECASE)
                 sitemap_endpoints.update(sitemap_urls)
                 
-                # Extract ALL Disallow paths (prioritize robots.txt endpoints)
                 disallow_paths = re.findall(r'Disallow:\s*/([^\s]*)', robots_content, re.IGNORECASE)
                 for path in disallow_paths:
                     if path:
@@ -186,14 +205,12 @@ class TechDetector:
         except:
             pass
         
-        # 3. Parse sitemap.xml if found
+        # Parse sitemap.xml
         try:
             sitemap_url = urljoin(base_url, '/sitemap.xml')
             sitemap_response = await self._fetch_page(session, sitemap_url)
             if sitemap_response[0]:
-                # Extract URLs from sitemap
                 sitemap_urls = re.findall(r'<loc>([^<]+)</loc>', sitemap_response[0])
-                # Add all paths from sitemap as endpoints
                 for url in sitemap_urls:
                     try:
                         path = urlparse(url).path
@@ -204,24 +221,20 @@ class TechDetector:
         except:
             pass
         
-        # 4. Prioritize endpoint scanning: robots.txt first, then framework/common, then sitemap
-        # Scan all robots.txt endpoints + selected others
-        endpoints_to_scan = list(robots_endpoints)[:30]  # Scan up to 30 robots.txt endpoints
-        endpoints_to_scan.extend(list(framework_endpoints)[:10])  # Add framework endpoints
-        endpoints_to_scan.extend(list(common_endpoints_set)[:10])  # Add common endpoints
-        endpoints_to_scan.extend(list(sitemap_endpoints)[:10])  # Add sitemap endpoints
+        endpoints_to_scan = list(robots_endpoints)[:25]
+        endpoints_to_scan.extend(list(framework_endpoints)[:8])
+        endpoints_to_scan.extend(list(common_endpoints_set)[:8])
+        endpoints_to_scan.extend(list(sitemap_endpoints)[:8])
         
-        # 5. Scan endpoints for version clues
         for endpoint in endpoints_to_scan:
             try:
                 endpoint_url = urljoin(base_url, endpoint) if endpoint.startswith('/') else endpoint
                 if endpoint_url.startswith('http'):
                     html, _, _, _ = await self._fetch_page(session, endpoint_url)
-                    if html and len(html) < 50000:  # Only process reasonable-sized responses
+                    if html and len(html) < 50000:
                         for pattern, desc in ENDPOINT_VERSION_PATTERNS:
                             matches = re.findall(pattern, html, re.IGNORECASE)
                             if matches:
-                                # Try to find framework-specific version
                                 for tech in detected_techs:
                                     if tech.lower() in endpoint.lower():
                                         versions[tech] = matches[0]
@@ -380,7 +393,6 @@ class TechDetector:
         for stack_name, stack_info in TECH_STACKS.items():
             core_techs = set(stack_info["core"])
             
-            # Check if core technologies are present
             if core_techs.issubset(tech_names):
                 matched_recommended = [tech for tech in stack_info.get("recommended", []) if tech in tech_names]
                 
@@ -392,7 +404,6 @@ class TechDetector:
                     "confidence": 0.95 if len(matched_recommended) > 0 else 0.85
                 })
         
-        # Sort by confidence
         detected_stacks.sort(key=lambda x: -x["confidence"])
         return detected_stacks
 
@@ -444,11 +455,9 @@ class TechDetector:
     def _analyze_performance(self, html: str, headers: Dict[str, str]) -> Dict[str, Any]:
         performance = {}
         
-        # Compression
         if 'content-encoding' in headers:
             performance['compression'] = headers['content-encoding']
         
-        # Caching
         cache_headers = {}
         for h in ['cache-control', 'expires', 'etag', 'last-modified']:
             if h in headers:
@@ -456,11 +465,9 @@ class TechDetector:
         if cache_headers:
             performance['caching'] = cache_headers
         
-        # Lazy loading
         if 'loading="lazy"' in html.lower() or 'lazy' in html.lower():
             performance['lazy_loading'] = True
         
-        # Preload
         preload = re.findall(r'rel=["\']preload["\']', html, re.IGNORECASE)
         if preload:
             performance['preload'] = len(preload)
@@ -496,7 +503,6 @@ class TechDetector:
                 # Parse page
                 soup = BeautifulSoup(html, 'lxml')
                 
-                # Extract context
                 script_srcs, script_contents = self._extract_scripts(soup)
                 css_hrefs = self._extract_css(soup)
                 meta_tags = self._extract_meta(soup)
@@ -512,30 +518,21 @@ class TechDetector:
                     'url': final_url
                 }
                 
-                # Detect technologies
                 technologies = self._detect_technologies(context)
                 result['technologies'] = technologies
-                
-                # Detect Tech Stacks
                 result['tech_stacks'] = self.detect_tech_stacks(technologies)
                 
-                # Security headers
                 result['security'] = self._analyze_security_headers(headers)
-                
-                # Performance
                 result['performance'] = self._analyze_performance(html, headers)
                 
-                # Page info
                 title_tag = soup.find('title')
                 if title_tag:
                     result['page_info']['title'] = title_tag.get_text(strip=True)[:100]
                 
-                # CVE lookup if enabled
                 if self.enable_cve and technologies:
                     detected_names = [t['name'] for t in technologies]
                     versions = await self._scan_endpoints_for_versions(session, final_url, detected_names)
                     
-                    # Merge versions
                     for tech in technologies:
                         if tech['name'] in versions:
                             tech['version'] = versions[tech['name']]
@@ -552,7 +549,8 @@ class TechDetector:
         
         return result
 
-    async def analyze_urls(self, urls: List[str], concurrency: int = 5) -> List[Dict[str, Any]]:
+    async def analyze_urls(self, urls: List[str], concurrency: int = 3) -> List[Dict[str, Any]]:
+        """Lower default concurrency for stealth"""
         semaphore = asyncio.Semaphore(concurrency)
         
         async def analyze_with_semaphore(url):
