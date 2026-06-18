@@ -558,8 +558,9 @@ def generate_html_report(results: List[dict], output_path: str):
 
 
 async def run_analysis(urls: List[str], concurrency: int, show_details: bool, 
-                       enable_cve: bool = False, nvd_api_key: Optional[str] = None, show_stacks: bool = True):
-    detector = TechDetector(timeout=25, enable_cve=enable_cve, nvd_api_key=nvd_api_key)
+                       enable_cve: bool = False, nvd_api_key: Optional[str] = None, 
+                       show_stacks: bool = True, min_confidence: float = 0.70):
+    detector = TechDetector(timeout=25, enable_cve=enable_cve, nvd_api_key=nvd_api_key, min_confidence=min_confidence)
     
     urls = urls or []
     if len(urls) == 1:
@@ -616,6 +617,8 @@ def main():
     parser.add_argument('--json', action='store_true', help='Output raw JSON to stdout')
     parser.add_argument('--html', help='Generate HTML report')
     parser.add_argument('--stack', action='store_true', help='Show detected tech stacks')
+    parser.add_argument('--min-confidence', type=float, default=0.70, 
+                        help='Minimum confidence threshold to reduce false positives (default: 0.70)')
     parser.add_argument('--no-banner', action='store_true', help='Hide banner')
     parser.add_argument('-v', '--version', action='version', version='TechScanner 2.0.0')
     
@@ -647,7 +650,8 @@ def main():
             not args.brief,
             enable_cve=args.cve,
             nvd_api_key=nvd_api_key,
-            show_stacks=args.stack or True
+            show_stacks=args.stack or True,
+            min_confidence=args.min_confidence
         ))
         
         if args.json:
