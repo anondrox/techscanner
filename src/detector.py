@@ -13,6 +13,51 @@ from .fingerprints import FINGERPRINTS, SECURITY_HEADERS
 from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_ENDPOINTS, ENDPOINT_VERSION_PATTERNS, COMMON_ENDPOINTS
 
 
+# Common Tech Stack Definitions
+TECH_STACKS = {
+    "Next.js Stack": {
+        "core": ["Next.js", "React"],
+        "recommended": ["Tailwind CSS", "shadcn/ui", "Vercel"],
+        "description": "Modern React framework with server components"
+    },
+    "Nuxt Stack": {
+        "core": ["Nuxt.js", "Vue.js"],
+        "recommended": ["Tailwind CSS", "Vercel"],
+        "description": "Vue.js meta-framework"
+    },
+    "SvelteKit Stack": {
+        "core": ["SvelteKit", "Svelte"],
+        "recommended": ["Tailwind CSS"],
+        "description": "Fast, lightweight Svelte framework"
+    },
+    "Laravel Stack": {
+        "core": ["Laravel", "PHP"],
+        "recommended": ["Tailwind CSS"],
+        "description": "Popular PHP framework"
+    },
+    "Django Stack": {
+        "core": ["Django", "Python"],
+        "recommended": ["Tailwind CSS"],
+        "description": "High-level Python web framework"
+    },
+    "WordPress Stack": {
+        "core": ["WordPress", "PHP"],
+        "recommended": ["Elementor", "WooCommerce"],
+        "description": "Most popular CMS"
+    },
+    "Shopify Stack": {
+        "core": ["Shopify"],
+        "recommended": ["Hydrogen", "Remix"],
+        "description": "E-commerce platform"
+    },
+    "Astro Stack": {
+        "core": ["Astro"],
+        "recommended": ["React", "Vue.js", "Tailwind CSS"],
+        "description": "Content-focused static site generator"
+    },
+}
+
+
 class TechDetector:
     def __init__(self, timeout: int = 15, max_retries: int = 2, 
                   enable_cve: bool = False, nvd_api_key: Optional[str] = None):
@@ -294,6 +339,33 @@ class TechDetector:
         detected.sort(key=lambda x: (-x['confidence'], x['name']))
         return detected
 
+    def detect_tech_stacks(self, technologies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Detect common technology stacks from detected technologies"""
+        if not technologies:
+            return []
+        
+        tech_names = {t['name'] for t in technologies}
+        detected_stacks = []
+        
+        for stack_name, stack_info in TECH_STACKS.items():
+            core_techs = set(stack_info["core"])
+            
+            # Check if core technologies are present
+            if core_techs.issubset(tech_names):
+                matched_recommended = [tech for tech in stack_info.get("recommended", []) if tech in tech_names]
+                
+                detected_stacks.append({
+                    "name": stack_name,
+                    "description": stack_info.get("description", ""),
+                    "core_technologies": list(core_techs),
+                    "matched_recommended": matched_recommended,
+                    "confidence": 0.95 if len(matched_recommended) > 0 else 0.85
+                })
+        
+        # Sort by confidence
+        detected_stacks.sort(key=lambda x: -x["confidence"])
+        return detected_stacks
+
     def _analyze_security_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
         results: Dict[str, Any] = {
             'present': [],
@@ -376,7 +448,8 @@ class TechDetector:
             'vulnerabilities': {},
             'page_info': {},
             'analysis_time': 0,
-            'final_url': url
+            'final_url': url,
+            'tech_stacks': []
         }
         
         try:
@@ -412,6 +485,9 @@ class TechDetector:
                 # Detect technologies
                 technologies = self._detect_technologies(context)
                 result['technologies'] = technologies
+                
+                # Detect Tech Stacks
+                result['tech_stacks'] = self.detect_tech_stacks(technologies)
                 
                 # Security headers
                 result['security'] = self._analyze_security_headers(headers)
