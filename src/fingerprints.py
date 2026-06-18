@@ -76,16 +76,17 @@ FINGERPRINTS = {
         "API Gateway - AWS": {"patterns": [{"type": "header", "pattern": r"x-amzn-requestid"}], "category": "API Gateway", "website": "https://aws.amazon.com/api-gateway/"},
     },
     "waf": {
-        "Cloudflare WAF": {
-            "patterns": [{"type": "header", "pattern": r"cf-ray|cf-mitigated|cf-cache-status"}], "category": "WAF / Protection", "website": "https://www.cloudflare.com"},
-        "AWS WAF": {
-            "patterns": [{"type": "header", "pattern": r"x-amzn-waf|awselb"}], "category": "WAF / Protection", "website": "https://aws.amazon.com/waf/"},
-        "Akamai WAF": {
-            "patterns": [{"type": "header", "pattern": r"akamai|akamai-origin"}], "category": "WAF / Protection", "website": "https://www.akamai.com"},
-        "Imperva / Incapsula": {
-            "patterns": [{"type": "header", "pattern": r"x-iinfo|incap_ses|visid_incap"}], "category": "WAF / Protection", "website": "https://www.imperva.com"},
-        "Sucuri WAF": {
-            "patterns": [{"type": "header", "pattern": r"x-sucuri"}], "category": "WAF / Protection", "website": "https://sucuri.net"},
+        "Cloudflare WAF": {"patterns": [{"type": "header", "pattern": r"cf-ray|cf-mitigated|cf-cache-status"}], "category": "WAF / Protection", "website": "https://www.cloudflare.com"},
+        "AWS WAF": {"patterns": [{"type": "header", "pattern": r"x-amzn-waf|awselb"}], "category": "WAF / Protection", "website": "https://aws.amazon.com/waf/"},
+        "Akamai WAF": {"patterns": [{"type": "header", "pattern": r"akamai|akamai-origin"}], "category": "WAF / Protection", "website": "https://www.akamai.com"},
+        "Imperva / Incapsula": {"patterns": [{"type": "header", "pattern": r"x-iinfo|incap_ses|visid_incap"}], "category": "WAF / Protection", "website": "https://www.imperva.com"},
+        "Sucuri WAF": {"patterns": [{"type": "header", "pattern": r"x-sucuri"}], "category": "WAF / Protection", "website": "https://sucuri.net"},
+    },
+    "cdn": {
+        "Cloudflare CDN": {"patterns": [{"type": "header", "pattern": r"cf-ray|cf-cache-status"}], "category": "CDN", "website": "https://www.cloudflare.com"},
+        "Fastly CDN": {"patterns": [{"type": "header", "pattern": r"x-served-by|fastly"}], "category": "CDN", "website": "https://www.fastly.com"},
+        "Akamai CDN": {"patterns": [{"type": "header", "pattern": r"akamai"}], "category": "CDN", "website": "https://www.akamai.com"},
+        "Amazon CloudFront": {"patterns": [{"type": "header", "pattern": r"x-amz-cf-id|x-cache"}], "category": "CDN", "website": "https://aws.amazon.com/cloudfront/"},
     },
 }
 
