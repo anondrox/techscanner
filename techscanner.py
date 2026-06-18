@@ -149,7 +149,7 @@ def display_vulnerabilities(vulnerabilities: dict):
         console.print()
 
 
-def display_single_result(result: dict, show_details: bool = True, show_cves: bool = False):
+def display_single_result(result: dict, show_details: bool = True, show_cves: bool = False, show_stacks: bool = True):
     if not result.get('success'):
         console.print(f"\n[red]Error analyzing {result['url']}:[/red] {result.get('error', 'Unknown error')}")
         return
@@ -159,6 +159,16 @@ def display_single_result(result: dict, show_details: bool = True, show_cves: bo
     
     if result.get('page_info', {}).get('title'):
         console.print(f"[bold]Page Title:[/bold] {result['page_info']['title']}")
+    
+    # Display Tech Stacks
+    if show_stacks and result.get('tech_stacks'):
+        stacks = result['tech_stacks']
+        if stacks:
+            stack_panel = "\n".join([
+                f"[bold cyan]{s['name']}[/bold cyan] — {s['description']}"
+                for s in stacks[:3]
+            ])
+            console.print(Panel(stack_panel, title="[bold]Detected Tech Stack(s)[/bold]", box=box.ROUNDED))
     
     technologies = result.get('technologies', [])
     if technologies:
@@ -370,95 +380,176 @@ def save_results(results: List[dict], output_path: str, format_type: str = 'json
 
 
 def generate_html_report(results: List[dict], output_path: str):
-    """Generate a beautiful HTML report"""
-    html_content = f"""
+    """Generate a much improved beautiful HTML report"""
+    html = f"""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TechScanner Report - {len(results)} URL(s)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechScanner v2.0 Report</title>
     <style>
-        body {{ font-family: system-ui, sans-serif; margin: 40px; background: #0f172a; color: #e2e8f0; }}
-        h1 {{ color: #22d3ee; }}
-        .card {{ background: #1e2937; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }}
-        table {{ width: 100%; border-collapse: collapse; }}
-        th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #334155; }}
-        th {{ background: #334155; color: #67e8f9; }}
-        .tech {{ color: #67e8f9; font-weight: 600; }}
-        .high {{ color: #ef4444; }}
-        .medium {{ color: #eab308; }}
-        .low {{ color: #22c55e; }}
-        .confidence-high {{ color: #22c55e; }}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        
+        :root {{
+            --primary: #22d3ee;
+        }}
+        body {{
+            font-family: 'Inter', system_ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }}
+        .container {{
+            max-width: 1100px;
+            margin: 0 auto;
+        }}
+        h1 {{
+            font-family: 'Space Grotesk', sans-serif;
+            color: #67e8f9;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 50px;
+        }}
+        .card {{
+            background: #1e2937;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: 1px solid #334155;
+        }}
+        .stack-card {{
+            background: linear-gradient(135deg, #1e2937, #334155);
+            border-left: 5px solid #22d3ee;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        th, td {{
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #475569;
+        }}
+        th {{
+            background: #334155;
+            color: #67e8f9;
+            font-weight: 600;
+        }}
+        .tech-name {{
+            color: #67e8f9;
+            font-weight: 600;
+        }}
+        .confidence-high {{ color: #22c55e; font-weight: 600; }}
         .confidence-medium {{ color: #eab308; }}
         .confidence-low {{ color: #ef4444; }}
+        .badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }}
     </style>
 </head>
 <body>
-    <h1>🔍 TechScanner v2.0 Report</h1>
-    <p>Generated for {len(results)} URL(s)</p>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 TechScanner v2.0</h1>
+            <p style="color:#94a3b8; font-size:1.1rem;">Advanced Technology & Security Analysis Report</p>
+        </div>
     """
     
     for result in results:
         if not result.get('success'):
             continue
-        
+            
         url = result.get('final_url', result.get('url', ''))
         techs = result.get('technologies', [])
+        stacks = result.get('tech_stacks', [])
         security = result.get('security', {})
-        vulns = result.get('vulnerabilities', {})
         
-        html_content += f"""
+        # Tech Stacks Section
+        if stacks:
+            html += '<div class="card stack-card">'
+            html += '<h2 style="margin-top:0; color:#67e8f9;">🧱 Detected Tech Stack(s)</h2>'
+            for stack in stacks[:3]:
+                html += f"""
+                <div style="margin-bottom: 16px;">
+                    <strong style="font-size:1.1rem;">{stack['name']}</strong><br>
+                    <span style="color:#94a3b8;">{stack['description']}</span>
+                </div>
+                """
+            html += '</div>'
+        
+        # Technologies
+        html += f"""
         <div class="card">
-            <h2>🌐 {url}</h2>
-            <p><strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s | <strong>Technologies:</strong> {len(techs)}</p>
+            <h2 style="margin-top:0;">🌐 {url}</h2>
+            <p><strong>Technologies Detected:</strong> {len(techs)} | <strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s</p>
             
-            <h3>Detected Technologies</h3>
+            <h3 style="margin-top:30px;">Detected Technologies</h3>
             <table>
-                <tr><th>Technology</th><th>Version</th><th>Category</th><th>Confidence</th></tr>
+                <tr>
+                    <th>Technology</th>
+                    <th>Version</th>
+                    <th>Category</th>
+                    <th>Confidence</th>
+                </tr>
         """
         
         for tech in sorted(techs, key=lambda x: -x.get('confidence', 0)):
             conf = tech.get('confidence', 0)
             conf_class = 'confidence-high' if conf >= 0.8 else 'confidence-medium' if conf >= 0.5 else 'confidence-low'
-            html_content += f"""
+            html += f"""
                 <tr>
-                    <td class="tech">{tech['name']}</td>
+                    <td class="tech-name">{tech['name']}</td>
                     <td>{tech.get('version', 'Unknown')}</td>
                     <td>{tech.get('category', '')}</td>
                     <td class="{conf_class}">{conf*100:.0f}%</td>
                 </tr>
             """
         
-        html_content += """
+        html += """
             </table>
         </div>
         """
     
-    html_content += """
+    html += """
+        <div style="text-align:center; margin-top:60px; color:#64748b; font-size:0.9rem;">
+            Generated by TechScanner v2.0 • Made with ❤️ by anondrox
+        </div>
+    </div>
 </body>
 </html>
     """
     
     with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
+        f.write(html)
     
-    console.print(f"\n[green]✅ HTML report saved to:[/green] {output_path}")
+    console.print(f"\n[green]✅ Beautiful HTML report saved to:[/green] {output_path}")
 
 
 async def run_analysis(urls: List[str], concurrency: int, show_details: bool, 
-                       enable_cve: bool = False, nvd_api_key: Optional[str] = None):
+                       enable_cve: bool = False, nvd_api_key: Optional[str] = None, show_stacks: bool = True):
     detector = TechDetector(timeout=20, enable_cve=enable_cve, nvd_api_key=nvd_api_key)
     
     urls = urls or []
     if len(urls) == 1:
         status_msg = "[bold green]Analyzing"
         if enable_cve:
-            status_msg += " (with CVE lookup - this may take longer)"
+            status_msg += " (with CVE lookup)"
         status_msg += "...[/bold green]"
         
         with console.status(status_msg):
             result = await detector.analyze_url(urls[0])
-        display_single_result(result, show_details, show_cves=enable_cve)
+        display_single_result(result, show_details, show_cves=enable_cve, show_stacks=show_stacks)
         return [result]
     else:
         results = []
@@ -471,7 +562,7 @@ async def run_analysis(urls: List[str], concurrency: int, show_details: bool,
         ) as progress:
             desc = f"[cyan]Analyzing {len(urls)} URLs"
             if enable_cve:
-                desc += " (with CVE lookup)"
+                desc += " (with CVE)"
             desc += "..."
             task = progress.add_task(desc, total=len(urls))
             
@@ -484,58 +575,43 @@ async def run_analysis(urls: List[str], concurrency: int, show_details: bool,
             for result in results:
                 if result.get('success'):
                     console.print("\n" + "="*70)
-                    display_single_result(result, show_details=True, show_cves=enable_cve)
+                    display_single_result(result, show_details=True, show_cves=enable_cve, show_stacks=show_stacks)
         
         return results
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="TechScanner v2.0 - Advanced Technology Detection with CVE + HTML Reports",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s https://example.com
-  %(prog)s https://example.com --cve --html report.html
-  %(prog)s -f urls.txt --json -o results.json
-
-New in v2.0: --html for beautiful reports, improved accuracy, 250+ techs
-        """
+        description="TechScanner v2.0 - Advanced Tech Detection with CVE + HTML Reports + Stack Insights",
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     parser.add_argument('url', nargs='?', help='URL to analyze')
     parser.add_argument('-f', '--file', help='File containing URLs (one per line)')
-    parser.add_argument('-o', '--output', help='Output file path (supports .json, .csv, .html)')
-    parser.add_argument('-c', '--concurrency', type=int, default=5, help='Number of concurrent requests (default: 5)')
+    parser.add_argument('-o', '--output', help='Output file path (.json, .csv, .html)')
+    parser.add_argument('-c', '--concurrency', type=int, default=5, help='Concurrent requests (default: 5)')
     parser.add_argument('--cve', action='store_true', help='Enable CVE vulnerability scanning')
-    parser.add_argument('--brief', action='store_true', help='Show only technologies without security/performance details')
+    parser.add_argument('--brief', action='store_true', help='Show only technologies')
     parser.add_argument('--json', action='store_true', help='Output raw JSON to stdout')
-    parser.add_argument('--html', help='Generate HTML report (e.g. --html report.html)')
-    parser.add_argument('--no-banner', action='store_true', help='Hide the banner')
+    parser.add_argument('--html', help='Generate HTML report')
+    parser.add_argument('--stack', action='store_true', help='Show detected tech stacks')
+    parser.add_argument('--no-banner', action='store_true', help='Hide banner')
     parser.add_argument('-v', '--version', action='version', version='TechScanner 2.0.0')
     
     args = parser.parse_args()
     
     urls = []
-    
-    if args.url:
-        urls.append(args.url)
-    
+    if args.url: urls.append(args.url)
     if args.file:
         try:
             with open(args.file, 'r') as f:
-                file_urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-                urls.extend(file_urls)
-        except FileNotFoundError:
-            console.print(f"[red]Error:[/red] File not found: {args.file}")
-            sys.exit(1)
+                urls.extend([line.strip() for line in f if line.strip() and not line.startswith('#')])
         except Exception as e:
-            console.print(f"[red]Error reading file:[/red] {e}")
+            console.print(f"[red]Error:[/red] {e}")
             sys.exit(1)
     
     if not urls:
         parser.print_help()
-        console.print("\n[yellow]Error:[/yellow] Please provide a URL or a file with URLs")
         sys.exit(1)
     
     if not args.no_banner and not args.json:
@@ -543,26 +619,14 @@ New in v2.0: --html for beautiful reports, improved accuracy, 250+ techs
     
     nvd_api_key = os.environ.get('NVD_API_KEY')
     
-    if args.cve and not nvd_api_key:
-        console.print("\n[bold cyan]CVE Vulnerability Scanning[/bold cyan]")
-        if sys.stdin.isatty():
-            user_input = console.input("[cyan]Enter your NVD API key (or press Enter to continue with public API): [/cyan]").strip()
-            if user_input:
-                nvd_api_key = user_input
-                console.print("[green]✓ API key provided[/green]")
-            else:
-                console.print("[yellow]Note:[/yellow] Using public API with rate limits (50 requests per 30 seconds).")
-        else:
-            console.print("[yellow]Note:[/yellow] Using public API with rate limits (50 requests per 30 seconds).")
-        console.print("[dim]Get a free API key at: https://nvd.nist.gov/developers/request-an-api-key[/dim]\n")
-    
     try:
         results = asyncio.run(run_analysis(
             urls, 
             args.concurrency, 
             not args.brief,
             enable_cve=args.cve,
-            nvd_api_key=nvd_api_key
+            nvd_api_key=nvd_api_key,
+            show_stacks=args.stack or True
         ))
         
         if args.json:
@@ -570,15 +634,14 @@ New in v2.0: --html for beautiful reports, improved accuracy, 250+ techs
         elif args.html:
             generate_html_report(results, args.html)
         elif args.output:
-            if args.output.endswith('.csv'):
-                save_results(results, args.output, 'csv')
-            elif args.output.endswith('.html'):
+            if args.output.endswith(('.html', '.htm')):
                 generate_html_report(results, args.output)
+            elif args.output.endswith('.csv'):
+                save_results(results, args.output, 'csv')
             else:
                 save_results(results, args.output, 'json')
     except KeyboardInterrupt:
-        console.print("\n[yellow]Analysis interrupted by user[/yellow]")
-        sys.exit(0)
+        console.print("\n[yellow]Interrupted by user[/yellow]")
     except Exception as e:
         console.print(f"\n[red]Error:[/red] {e}")
         sys.exit(1)
