@@ -159,6 +159,26 @@ FINGERPRINTS = {
             "category": "Build Tool", "website": "https://webpack.js.org"
         },
     },
+    "databases": {
+        "MongoDB": {
+            "patterns": [ {"type": "script_content", "pattern": r"mongodb|mongoose"} ],
+            "category": "Database", "website": "https://www.mongodb.com"
+        },
+        "PostgreSQL": {
+            "patterns": [ {"type": "script_content", "pattern": r"postgres|postgresql"} ],
+            "category": "Database", "website": "https://www.postgresql.org"
+        },
+    },
+    "monitoring": {
+        "Sentry": {
+            "patterns": [ {"type": "script", "pattern": r"sentry|getsentry"} ],
+            "category": "Monitoring", "website": "https://sentry.io"
+        },
+        "Datadog": {
+            "patterns": [ {"type": "script", "pattern": r"datadog|ddrum"} ],
+            "category": "Monitoring", "website": "https://www.datadoghq.com"
+        },
+    },
 }
 
 SECURITY_HEADERS = {
