@@ -176,7 +176,7 @@ FINGERPRINTS = {
         },
         "Underscore.js": {
             "patterns": [
-                {"type": "script", "pattern": r"underscore(?:\.min)?\.js"},
+                {"type": "script", "pattern": r"underscore(?:\.min)?\.js"],
             ],
             "category": "JavaScript Library",
             "website": "https://underscorejs.org"
@@ -184,7 +184,7 @@ FINGERPRINTS = {
         "Moment.js": {
             "patterns": [
                 {"type": "script", "pattern": r"moment(?:\.min)?\.js"},
-                {"type": "script_content", "pattern": r"moment\(\)\.format"},
+                {"type": "script_content", "pattern": r"moment\(\)\.format"],
             ],
             "category": "JavaScript Library",
             "website": "https://momentjs.com"
@@ -192,7 +192,7 @@ FINGERPRINTS = {
         "D3.js": {
             "patterns": [
                 {"type": "script", "pattern": r"d3(?:\.min)?\.js"},
-                {"type": "script_content", "pattern": r"d3\.select"},
+                {"type": "script_content", "pattern": r"d3\.select"],
             ],
             "category": "JavaScript Library",
             "website": "https://d3js.org"
@@ -200,7 +200,7 @@ FINGERPRINTS = {
         "Three.js": {
             "patterns": [
                 {"type": "script", "pattern": r"three(?:\.min)?\.js"},
-                {"type": "script_content", "pattern": r"THREE\.Scene"},
+                {"type": "script_content", "pattern": r"THREE\.Scene"],
             ],
             "category": "JavaScript Library",
             "website": "https://threejs.org"
@@ -226,7 +226,7 @@ FINGERPRINTS = {
                 {"type": "script", "pattern": r"handlebars(?:\.min)?\.js"},
                 {"type": "script", "pattern": r"handlebars\.js/\d+\.\d+"},
                 {"type": "script_content", "pattern": r"Handlebars\.compile"},
-                {"type": "script_content", "pattern": r"Handlebars\.registerHelper"},
+                {"type": "script_content", "pattern": r"Handlebars\.registerHelper"],
             ],
             "category": "JavaScript Library",
             "website": "https://handlebarsjs.com"
@@ -235,8 +235,8 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "script", "pattern": r"crypto-js(?:\.min)?\.js"},
                 {"type": "script", "pattern": r"crypto-js/\d+\.\d+"},
-                {"type": "script_content", "pattern": r"CryptoJS\."},
-                {"type": "script_content", "pattern": r"CryptoJS\.AES|CryptoJS\.SHA256|CryptoJS\.MD5"},
+                {"type": "script_content", "pattern": r"CryptoJS\."],
+                {"type": "script_content", "pattern": r"CryptoJS\.AES|CryptoJS\.SHA256|CryptoJS\.MD5"],
             ],
             "category": "JavaScript Library",
             "website": "https://cryptojs.gitbook.io"
@@ -244,17 +244,32 @@ FINGERPRINTS = {
         "TanStack Query": {
             "patterns": [
                 {"type": "script_content", "pattern": r"@tanstack/react-query|useQuery|useMutation"},
-                {"type": "script", "pattern": r"@tanstack/react-query"},
+                {"type": "script", "pattern": r"@tanstack/react-query"],
             ],
             "category": "JavaScript Library",
             "website": "https://tanstack.com/query"
         },
         "Zustand": {
             "patterns": [
-                {"type": "script_content", "pattern": r"create\(|zustand"},
+                {"type": "script_content", "pattern": r"create\(|zustand"],
             ],
             "category": "State Management",
             "website": "https://zustand-demo.pmnd.rs"
+        },
+        "Redux": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"redux|createStore|configureStore"},
+                {"type": "script", "pattern": r"redux"],
+            ],
+            "category": "State Management",
+            "website": "https://redux.js.org"
+        },
+        "Jotai": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"jotai|useAtom"],
+            ],
+            "category": "State Management",
+            "website": "https://jotai.org"
         },
     },
     "css_frameworks": {
@@ -263,7 +278,7 @@ FINGERPRINTS = {
                 {"type": "css", "pattern": r"bootstrap(?:\.min)?\.css"},
                 {"type": "script", "pattern": r"bootstrap(?:\.bundle)?(?:\.min)?\.js"},
                 {"type": "html", "pattern": r"class=\"[^\"]*(?:container|row|col-(?:xs|sm|md|lg|xl)-\d+)"},
-                {"type": "html", "pattern": r"class=\"[^\"]*btn btn-"},
+                {"type": "html", "pattern": r"class=\"[^\"]*btn btn-"],
             ],
             "category": "CSS Framework",
             "website": "https://getbootstrap.com"
@@ -272,7 +287,7 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "css", "pattern": r"tailwind(?:\.min)?\.css"},
                 {"type": "html", "pattern": r"class=\"[^\"]*(?:flex|grid|p-\d+|m-\d+|text-(?:xs|sm|base|lg|xl)|bg-(?:gray|red|blue|green)-\d{2,3})"},
-                {"type": "html", "pattern": r"class=\"[^\"]*(?:hover:|focus:|dark:|sm:|md:|lg:|xl:)"},
+                {"type": "html", "pattern": r"class=\"[^\"]*(?:hover:|focus:|dark:|sm:|md:|lg:|xl:)"],
             ],
             "category": "CSS Framework",
             "website": "https://tailwindcss.com"
@@ -281,48 +296,48 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "css", "pattern": r"bulma(?:\.min)?\.css"},
                 {"type": "html", "pattern": r"class=\"[^\"]*(?:is-primary|is-link|is-info|is-success|is-warning|is-danger)"},
-                {"type": "html", "pattern": r"class=\"[^\"]*(?:columns|column|hero|section)"},
+                {"type": "html", "pattern": r"class=\"[^\"]*(?:columns|column|hero|section)"],
             ],
             "category": "CSS Framework",
             "website": "https://bulma.io"
         },
         "Foundation": {
             "patterns": [
-                {"type": "css", "pattern": r"foundation(?:\.min)?\.css"},
-                {"type": "html", "pattern": r"class=\"[^\"]*(?:small-\d+|medium-\d+|large-\d+)"},
+                {"type": "css", "pattern": r"foundation(?:\.min)?\.css"],
+                {"type": "html", "pattern": r"class=\"[^\"]*(?:small-\d+|medium-\d+|large-\d+)"],
             ],
             "category": "CSS Framework",
             "website": "https://get.foundation"
         },
         "Materialize": {
             "patterns": [
-                {"type": "css", "pattern": r"materialize(?:\.min)?\.css"},
-                {"type": "html", "pattern": r"class=\"[^\"]*(?:waves-effect|waves-light|card-panel)"},
+                {"type": "css", "pattern": r"materialize(?:\.min)?\.css"],
+                {"type": "html", "pattern": r"class=\"[^\"]*(?:waves-effect|waves-light|card-panel)"],
             ],
             "category": "CSS Framework",
             "website": "https://materializecss.com"
         },
         "Semantic UI": {
             "patterns": [
-                {"type": "css", "pattern": r"semantic(?:\.min)?\.css"},
-                {"type": "html", "pattern": r"class=\"ui (?:button|container|grid|menu|segment)"},
+                {"type": "css", "pattern": r"semantic(?:\.min)?\.css"],
+                {"type": "html", "pattern": r"class=\"ui (?:button|container|grid|menu|segment)"],
             ],
             "category": "CSS Framework",
             "website": "https://semantic-ui.com"
         },
         "Pure CSS": {
             "patterns": [
-                {"type": "css", "pattern": r"pure(?:-min)?\.css"},
-                {"type": "html", "pattern": r"class=\"pure-"},
+                {"type": "css", "pattern": r"pure(?:-min)?\.css"],
+                {"type": "html", "pattern": r"class=\"pure-"],
             ],
             "category": "CSS Framework",
             "website": "https://purecss.io"
         },
         "UIKit": {
             "patterns": [
-                {"type": "css", "pattern": r"uikit(?:\.min)?\.css"},
-                {"type": "html", "pattern": r"class=\"uk-"},
-                {"type": "html", "pattern": r"uk-grid|uk-navbar"},
+                {"type": "css", "pattern": r"uikit(?:\.min)?\.css"],
+                {"type": "html", "pattern": r"class=\"uk-"],
+                {"type": "html", "pattern": r"uk-grid|uk-navbar"],
             ],
             "category": "CSS Framework",
             "website": "https://getuikit.com"
@@ -330,15 +345,15 @@ FINGERPRINTS = {
         "Chakra UI": {
             "patterns": [
                 {"type": "html", "pattern": r"chakra-"},
-                {"type": "script_content", "pattern": r"@chakra-ui"},
+                {"type": "script_content", "pattern": r"@chakra-ui"],
             ],
             "category": "CSS Framework",
             "website": "https://chakra-ui.com"
         },
         "Ant Design": {
             "patterns": [
-                {"type": "css", "pattern": r"antd(?:\.min)?\.css"},
-                {"type": "html", "pattern": r"class=\"ant-"},
+                {"type": "css", "pattern": r"antd(?:\.min)?\.css"],
+                {"type": "html", "pattern": r"class=\"ant-"],
             ],
             "category": "CSS Framework",
             "website": "https://ant.design"
@@ -346,10 +361,18 @@ FINGERPRINTS = {
         "DaisyUI": {
             "patterns": [
                 {"type": "html", "pattern": r"class=\"[^\"]*(?:btn-primary|card-body|navbar|drawer)"},
-                {"type": "html", "pattern": r"data-theme="},
+                {"type": "html", "pattern": r"data-theme="],
             ],
             "category": "CSS Framework",
             "website": "https://daisyui.com"
+        },
+        "shadcn/ui": {
+            "patterns": [
+                {"type": "html", "pattern": r"shadcn|cn\(\)"],
+                {"type": "script_content", "pattern": r"@radix-ui|tailwindcss"],
+            ],
+            "category": "CSS Framework",
+            "website": "https://ui.shadcn.com"
         },
     },
     "cms": {
@@ -358,8 +381,8 @@ FINGERPRINTS = {
                 {"type": "html", "pattern": r"wp-content/"},
                 {"type": "html", "pattern": r"wp-includes/"},
                 {"type": "meta", "pattern": r"generator", "value": r"WordPress"},
-                {"type": "html", "pattern": r"wp-json"},
-                {"type": "header", "pattern": r"link", "value": r"wp-json"},
+                {"type": "html", "pattern": r"wp-json"],
+                {"type": "header", "pattern": r"link", "value": r"wp-json"],
             ],
             "category": "CMS",
             "website": "https://wordpress.org"
@@ -368,9 +391,9 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "html", "pattern": r"Drupal\.settings"},
                 {"type": "meta", "pattern": r"generator", "value": r"Drupal"},
-                {"type": "html", "pattern": r"/sites/default/files/"},
-                {"type": "header", "pattern": r"x-drupal-cache"},
-                {"type": "header", "pattern": r"x-generator", "value": r"Drupal"},
+                {"type": "html", "pattern": r"/sites/default/files/"],
+                {"type": "header", "pattern": r"x-drupal-cache"],
+                {"type": "header", "pattern": r"x-generator", "value": r"Drupal"],
             ],
             "category": "CMS",
             "website": "https://www.drupal.org"
@@ -379,7 +402,7 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "html", "pattern": r"/media/jui/"},
                 {"type": "meta", "pattern": r"generator", "value": r"Joomla"},
-                {"type": "html", "pattern": r"option=com_"},
+                {"type": "html", "pattern": r"option=com_"],
             ],
             "category": "CMS",
             "website": "https://www.joomla.org"
@@ -388,8 +411,8 @@ FINGERPRINTS = {
             "patterns": [
                 {"type": "html", "pattern": r"cdn\.shopify\.com"},
                 {"type": "html", "pattern": r"Shopify\.theme"},
-                {"type": "header", "pattern": r"x-shopify-stage"},
-                {"type": "script_content", "pattern": r"Shopify\."},
+                {"type": "header", "pattern": r"x-shopify-stage"],
+                {"type": "script_content", "pattern": r"Shopify\."],
             ],
             "category": "E-commerce",
             "website": "https://www.shopify.com"
@@ -397,9 +420,9 @@ FINGERPRINTS = {
         "Magento": {
             "patterns": [
                 {"type": "html", "pattern": r"/static/version"},
-                {"type": "html", "pattern": r"Magento_"},
-                {"type": "html", "pattern": r"mage/cookies"},
-                {"type": "script_content", "pattern": r"Mage\.Cookies"},
+                {"type": "html", "pattern": r"Magento_"],
+                {"type": "html", "pattern": r"mage/cookies"],
+                {"type": "script_content", "pattern": r"Mage\.Cookies"],
             ],
             "category": "E-commerce",
             "website": "https://magento.com"
@@ -415,25 +438,25 @@ FINGERPRINTS = {
         },
         "Squarespace": {
             "patterns": [
-                {"type": "html", "pattern": r"squarespace\.com"},
-                {"type": "html", "pattern": r"static\.squarespace\.com"},
-                {"type": "script_content", "pattern": r"Squarespace\."},
+                {"type": "html", "pattern": r"squarespace\.com"],
+                {"type": "html", "pattern": r"static\.squarespace\.com"],
+                {"type": "script_content", "pattern": r"Squarespace\."],
             ],
             "category": "CMS",
             "website": "https://www.squarespace.com"
         },
         "Wix": {
             "patterns": [
-                {"type": "html", "pattern": r"wix\.com"},
-                {"type": "html", "pattern": r"static\.wixstatic\.com"},
-                {"type": "meta", "pattern": r"generator", "value": r"Wix"},
+                {"type": "html", "pattern": r"wix\.com"],
+                {"type": "html", "pattern": r"static\.wixstatic\.com"],
+                {"type": "meta", "pattern": r"generator", "value": r"Wix"],
             ],
             "category": "CMS",
             "website": "https://www.wix.com"
         },
         "Ghost": {
             "patterns": [
-                {"type": "meta", "pattern": r"generator", "value": r"Ghost"},
+                {"type": "meta", "pattern": r"generator", "value": r"Ghost"],
                 {"type": "html", "pattern": r"ghost-"],
             ],
             "category": "CMS",
@@ -441,8 +464,8 @@ FINGERPRINTS = {
         },
         "Webflow": {
             "patterns": [
-                {"type": "html", "pattern": r"webflow\.com"},
-                {"type": "meta", "pattern": r"generator", "value": r"Webflow"},
+                {"type": "html", "pattern": r"webflow\.com"],
+                {"type": "meta", "pattern": r"generator", "value": r"Webflow"],
                 {"type": "html", "pattern": r"w-webflow-badge"],
             ],
             "category": "CMS",
@@ -464,8 +487,8 @@ FINGERPRINTS = {
         },
         "Gatsby": {
             "patterns": [
-                {"type": "html", "pattern": r"gatsby-"},
-                {"type": "meta", "pattern": r"generator", "value": r"Gatsby"},
+                {"type": "html", "pattern": r"gatsby-"],
+                {"type": "meta", "pattern": r"generator", "value": r"Gatsby"],
                 {"type": "script", "pattern": r"gatsby-"],
             ],
             "category": "Static Site Generator",
@@ -488,24 +511,24 @@ FINGERPRINTS = {
         },
         "Strapi": {
             "patterns": [
-                {"type": "html", "pattern": r"strapi"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Strapi"},
-                {"type": "script_content", "pattern": r"strapi"},
+                {"type": "html", "pattern": r"strapi"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Strapi"],
+                {"type": "script_content", "pattern": r"strapi"],
             ],
             "category": "Headless CMS",
             "website": "https://strapi.io"
         },
         "Sanity": {
             "patterns": [
-                {"type": "html", "pattern": r"sanity\.io"},
-                {"type": "script", "pattern": r"@sanity"},
+                {"type": "html", "pattern": r"sanity\.io"],
+                {"type": "script", "pattern": r"@sanity"],
             ],
             "category": "Headless CMS",
             "website": "https://www.sanity.io"
         },
         "Contentful": {
             "patterns": [
-                {"type": "html", "pattern": r"contentful"},
+                {"type": "html", "pattern": r"contentful"],
                 {"type": "script", "pattern": r"contentful"],
             ],
             "category": "Headless CMS",
@@ -520,29 +543,44 @@ FINGERPRINTS = {
         },
         "Directus": {
             "patterns": [
-                {"type": "html", "pattern": r"directus"},
+                {"type": "html", "pattern": r"directus"],
                 {"type": "header", "pattern": r"x-powered-by", "value": r"Directus"],
             ],
             "category": "Headless CMS",
             "website": "https://directus.io"
+        },
+        "Medusa": {
+            "patterns": [
+                {"type": "html", "pattern": r"medusa|medusajs"],
+                {"type": "script_content", "pattern": r"@medusajs"],
+            ],
+            "category": "E-commerce",
+            "website": "https://medusajs.com"
+        },
+        "BigCommerce": {
+            "patterns": [
+                {"type": "html", "pattern": r"bigcommerce|bigcommerce\.com"],
+            ],
+            "category": "E-commerce",
+            "website": "https://www.bigcommerce.com"
         },
     },
     "server_technologies": {
         "Nginx": {
             "patterns": [
                 {"type": "header", "pattern": r"server", "value": r"nginx"},
-                {"type": "header", "pattern": r"x-nginx-cache"},
+                {"type": "header", "pattern": r"x-nginx-cache"],
             ],
             "category": "Web Server",
             "website": "https://nginx.org"
         },
         "Apache": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"Apache"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Apache"},
-                {"type": "html", "pattern": r"Apache/\d+\.\d+"},
-                {"type": "html", "pattern": r"apache_pb\.gif"},
-                {"type": "html", "pattern": r"/icons/apache_pb"},
+                {"type": "header", "pattern": r"server", "value": r"Apache"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Apache"],
+                {"type": "html", "pattern": r"Apache/\d+\.\d+"],
+                {"type": "html", "pattern": r"apache_pb\.gif"],
+                {"type": "html", "pattern": r"/icons/apache_pb"],
             ],
             "category": "Web Server",
             "website": "https://httpd.apache.org"
@@ -550,23 +588,23 @@ FINGERPRINTS = {
         "Apache Tomcat": {
             "patterns": [
                 {"type": "header", "pattern": r"server", "value": r"Apache-Coyote"},
-                {"type": "header", "pattern": r"server", "value": r"Tomcat"},
-                {"type": "html", "pattern": r"Apache Tomcat"},
-                {"type": "html", "pattern": r"tomcat\.gif"},
-                {"type": "html", "pattern": r"/manager/html"},
+                {"type": "header", "pattern": r"server", "value": r"Tomcat"],
+                {"type": "html", "pattern": r"Apache Tomcat"],
+                {"type": "html", "pattern": r"tomcat\.gif"],
+                {"type": "html", "pattern": r"/manager/html"],
                 {"type": "cookie", "pattern": r"JSESSIONID"},
-                {"type": "url", "pattern": r"\.jsp"},
-                {"type": "html", "pattern": r"org\.apache\.catalina"},
+                {"type": "url", "pattern": r"\.jsp"],
+                {"type": "html", "pattern": r"org\.apache\.catalina"],
             ],
             "category": "Web Server",
             "website": "https://tomcat.apache.org"
         },
         "Microsoft IIS": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"Microsoft-IIS"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"},
-                {"type": "header", "pattern": r"x-aspnet-version"},
-                {"type": "html", "pattern": r"iisstart\.htm"},
+                {"type": "header", "pattern": r"server", "value": r"Microsoft-IIS"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"],
+                {"type": "header", "pattern": r"x-aspnet-version"],
+                {"type": "html", "pattern": r"iisstart\.htm"],
                 {"type": "html", "pattern": r"iis-\d+\.png"],
             ],
             "category": "Web Server",
@@ -574,13 +612,13 @@ FINGERPRINTS = {
         },
         "Java": {
             "patterns": [
-                {"type": "cookie", "pattern": r"JSESSIONID"},
-                {"type": "url", "pattern": r"\.jsp"},
-                {"type": "url", "pattern": r"\.do"},
-                {"type": "url", "pattern": r"\.action"},
-                {"type": "html", "pattern": r"java\.sun\.com"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"JSP"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Java"},
+                {"type": "cookie", "pattern": r"JSESSIONID"],
+                {"type": "url", "pattern": r"\.jsp"],
+                {"type": "url", "pattern": r"\.do"],
+                {"type": "url", "pattern": r"\.action"],
+                {"type": "html", "pattern": r"java\.sun\.com"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"JSP"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Java"],
                 {"type": "header", "pattern": r"x-powered-by", "value": r"Servlet"],
             ],
             "category": "Programming Language",
@@ -588,18 +626,18 @@ FINGERPRINTS = {
         },
         "JSP": {
             "patterns": [
-                {"type": "url", "pattern": r"\.jsp"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"JSP"},
-                {"type": "html", "pattern": r"<%@\s*page"},
-                {"type": "html", "pattern": r"javax\.servlet"},
+                {"type": "url", "pattern": r"\.jsp"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"JSP"],
+                {"type": "html", "pattern": r"<%@\s*page"],
+                {"type": "html", "pattern": r"javax\.servlet"],
             ],
             "category": "Programming Language",
             "website": "https://www.oracle.com/java/technologies/jspt.html"
         },
         "JBoss": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"JBoss"},
-                {"type": "header", "pattern": r"server", "value": r"JBoss"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"JBoss"],
+                {"type": "header", "pattern": r"server", "value": r"JBoss"],
                 {"type": "html", "pattern": r"jboss\.org"],
             ],
             "category": "Application Server",
@@ -607,8 +645,8 @@ FINGERPRINTS = {
         },
         "WebLogic": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"WebLogic"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"WebLogic"},
+                {"type": "header", "pattern": r"server", "value": r"WebLogic"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"WebLogic"],
                 {"type": "html", "pattern": r"WebLogic Server"],
             ],
             "category": "Application Server",
@@ -616,8 +654,8 @@ FINGERPRINTS = {
         },
         "WebSphere": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"WebSphere"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Servlet"},
+                {"type": "header", "pattern": r"server", "value": r"WebSphere"],
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Servlet"],
                 {"type": "cookie", "pattern": r"JSESSIONID"],
             ],
             "category": "Application Server",
@@ -625,7 +663,7 @@ FINGERPRINTS = {
         },
         "GlassFish": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"GlassFish"},
+                {"type": "header", "pattern": r"server", "value": r"GlassFish"],
                 {"type": "header", "pattern": r"x-powered-by", "value": r"GlassFish"],
             ],
             "category": "Application Server",
@@ -633,7 +671,7 @@ FINGERPRINTS = {
         },
         "Jetty": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"Jetty"},
+                {"type": "header", "pattern": r"server", "value": r"Jetty"],
             ],
             "category": "Web Server",
             "website": "https://www.eclipse.org/jetty/"
@@ -647,9 +685,9 @@ FINGERPRINTS = {
         },
         "PHP": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"PHP"},
-                {"type": "url", "pattern": r"\.php"},
-                {"type": "cookie", "pattern": r"PHPSESSID"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"PHP"],
+                {"type": "url", "pattern": r"\.php"],
+                {"type": "cookie", "pattern": r"PHPSESSID"],
                 {"type": "html", "pattern": r"php\.net"],
             ],
             "category": "Programming Language",
@@ -657,18 +695,18 @@ FINGERPRINTS = {
         },
         "ASP.NET": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"},
-                {"type": "header", "pattern": r"x-aspnet-version"},
-                {"type": "header", "pattern": r"x-aspnetmvc-version"},
-                {"type": "url", "pattern": r"\.aspx"},
-                {"type": "url", "pattern": r"\.asmx"},
-                {"type": "url", "pattern": r"\.ashx"},
-                {"type": "url", "pattern": r"\.axd"},
-                {"type": "cookie", "pattern": r"ASP\.NET_SessionId"},
-                {"type": "cookie", "pattern": r"\.ASPXAUTH"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"],
+                {"type": "header", "pattern": r"x-aspnet-version"],
+                {"type": "header", "pattern": r"x-aspnetmvc-version"],
+                {"type": "url", "pattern": r"\.aspx"],
+                {"type": "url", "pattern": r"\.asmx"],
+                {"type": "url", "pattern": r"\.ashx"],
+                {"type": "url", "pattern": r"\.axd"],
+                {"type": "cookie", "pattern": r"ASP\.NET_SessionId"],
+                {"type": "cookie", "pattern": r"\.ASPXAUTH"],
                 {"type": "html", "pattern": r"__VIEWSTATE"},
-                {"type": "html", "pattern": r"__EVENTVALIDATION"},
-                {"type": "html", "pattern": r"WebResource\.axd"},
+                {"type": "html", "pattern": r"__EVENTVALIDATION"],
+                {"type": "html", "pattern": r"WebResource\.axd"],
                 {"type": "html", "pattern": r"ScriptResource\.axd"],
             ],
             "category": "Backend Framework",
@@ -676,7 +714,7 @@ FINGERPRINTS = {
         },
         "ASP Classic": {
             "patterns": [
-                {"type": "url", "pattern": r"\.asp(?!\.)"},
+                {"type": "url", "pattern": r"\.asp(?!\.)"],
                 {"type": "header", "pattern": r"x-powered-by", "value": r"ASP"],
             ],
             "category": "Programming Language",
@@ -685,9 +723,9 @@ FINGERPRINTS = {
         "ColdFusion": {
             "patterns": [
                 {"type": "url", "pattern": r"\.cfm"},
-                {"type": "url", "pattern": r"\.cfc"},
-                {"type": "cookie", "pattern": r"CFID"},
-                {"type": "cookie", "pattern": r"CFTOKEN"},
+                {"type": "url", "pattern": r"\.cfc"],
+                {"type": "cookie", "pattern": r"CFID"],
+                {"type": "cookie", "pattern": r"CFTOKEN"],
                 {"type": "header", "pattern": r"server", "value": r"ColdFusion"],
             ],
             "category": "Programming Language",
@@ -696,7 +734,7 @@ FINGERPRINTS = {
         "Perl": {
             "patterns": [
                 {"type": "url", "pattern": r"\.pl"},
-                {"type": "url", "pattern": r"\.cgi"},
+                {"type": "url", "pattern": r"\.cgi"],
                 {"type": "header", "pattern": r"server", "value": r"mod_perl"],
             ],
             "category": "Programming Language",
@@ -705,8 +743,8 @@ FINGERPRINTS = {
         "Python": {
             "patterns": [
                 {"type": "url", "pattern": r"\.py"},
-                {"type": "header", "pattern": r"server", "value": r"Python"},
-                {"type": "header", "pattern": r"server", "value": r"gunicorn"},
+                {"type": "header", "pattern": r"server", "value": r"Python"],
+                {"type": "header", "pattern": r"server", "value": r"gunicorn"],
                 {"type": "header", "pattern": r"server", "value": r"Werkzeug"],
             ],
             "category": "Programming Language",
@@ -715,15 +753,15 @@ FINGERPRINTS = {
         "Go": {
             "patterns": [
                 {"type": "header", "pattern": r"server", "value": r"Go-http"},
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Go"},
-                {"type": "html", "pattern": r"golang|go\.lang"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Go"],
+                {"type": "html", "pattern": r"golang|go\.lang"],
             ],
             "category": "Programming Language",
             "website": "https://go.dev"
         },
         "Rust": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"Actix|Rocket|Axum"},
+                {"type": "header", "pattern": r"server", "value": r"Actix|Rocket|Axum"],
                 {"type": "html", "pattern": r"rust|actix-web|rocket"],
             ],
             "category": "Programming Language",
@@ -731,7 +769,7 @@ FINGERPRINTS = {
         },
         "Node.js": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Express"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Express"],
                 {"type": "header", "pattern": r"x-powered-by", "value": r"Node"],
             ],
             "category": "Runtime",
@@ -781,16 +819,16 @@ FINGERPRINTS = {
         },
         "HAProxy": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"HAProxy"},
-                {"type": "cookie", "pattern": r"SERVERID"},
+                {"type": "header", "pattern": r"server", "value": r"HAProxy"],
+                {"type": "cookie", "pattern": r"SERVERID"],
             ],
             "category": "Load Balancer",
             "website": "http://www.haproxy.org"
         },
         "Django": {
             "patterns": [
-                {"type": "html", "pattern": r"csrfmiddlewaretoken"},
-                {"type": "header", "pattern": r"x-frame-options", "value": r"SAMEORIGIN"},
+                {"type": "html", "pattern": r"csrfmiddlewaretoken"],
+                {"type": "header", "pattern": r"x-frame-options", "value": r"SAMEORIGIN"],
                 {"type": "cookie", "pattern": r"csrftoken"],
             ],
             "category": "Backend Framework",
@@ -798,7 +836,7 @@ FINGERPRINTS = {
         },
         "Ruby on Rails": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"Phusion Passenger"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"Phusion Passenger"],
                 {"type": "html", "pattern": r"csrf-token"],
                 {"type": "header", "pattern": r"x-runtime"],
             ],
@@ -807,7 +845,7 @@ FINGERPRINTS = {
         },
         "Laravel": {
             "patterns": [
-                {"type": "cookie", "pattern": r"laravel_session"},
+                {"type": "cookie", "pattern": r"laravel_session"],
                 {"type": "html", "pattern": r"csrf-token"],
             ],
             "category": "Backend Framework",
@@ -829,23 +867,23 @@ FINGERPRINTS = {
         },
         "NestJS": {
             "patterns": [
-                {"type": "header", "pattern": r"x-powered-by", "value": r"NestJS"},
-                {"type": "script_content", "pattern": r"@nestjs"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"NestJS"],
+                {"type": "script_content", "pattern": r"@nestjs"],
             ],
             "category": "Backend Framework",
             "website": "https://nestjs.com"
         },
         "Spring": {
             "patterns": [
-                {"type": "header", "pattern": r"x-application-context"},
+                {"type": "header", "pattern": r"x-application-context"],
             ],
             "category": "Backend Framework",
             "website": "https://spring.io"
         },
         "Cloudflare": {
             "patterns": [
-                {"type": "header", "pattern": r"server", "value": r"cloudflare"},
-                {"type": "header", "pattern": r"cf-ray"},
+                {"type": "header", "pattern": r"server", "value": r"cloudflare"],
+                {"type": "header", "pattern": r"cf-ray"],
                 {"type": "header", "pattern": r"cf-cache-status"],
             ],
             "category": "CDN",
@@ -853,15 +891,15 @@ FINGERPRINTS = {
         },
         "Amazon CloudFront": {
             "patterns": [
-                {"type": "header", "pattern": r"x-amz-cf-id"},
-                {"type": "header", "pattern": r"x-amz-cf-pop"},
+                {"type": "header", "pattern": r"x-amz-cf-id"],
+                {"type": "header", "pattern": r"x-amz-cf-pop"],
             ],
             "category": "CDN",
             "website": "https://aws.amazon.com/cloudfront/"
         },
         "Fastly": {
             "patterns": [
-                {"type": "header", "pattern": r"x-served-by", "value": r"cache-"},
+                {"type": "header", "pattern": r"x-served-by", "value": r"cache-"],
                 {"type": "header", "pattern": r"x-fastly-request-id"],
             ],
             "category": "CDN",
@@ -876,7 +914,7 @@ FINGERPRINTS = {
         },
         "Vercel": {
             "patterns": [
-                {"type": "header", "pattern": r"x-vercel-id"},
+                {"type": "header", "pattern": r"x-vercel-id"],
                 {"type": "header", "pattern": r"server", "value": r"Vercel"],
             ],
             "category": "Hosting",
@@ -884,8 +922,8 @@ FINGERPRINTS = {
         },
         "Netlify": {
             "patterns": [
-                {"type": "header", "pattern": r"x-nf-request-id"},
-                {"type": "header", "pattern": r"server", "value": r"Netlify"},
+                {"type": "header", "pattern": r"x-nf-request-id"],
+                {"type": "header", "pattern": r"server", "value": r"Netlify"],
             ],
             "category": "Hosting",
             "website": "https://www.netlify.com"
@@ -899,7 +937,7 @@ FINGERPRINTS = {
         },
         "AWS": {
             "patterns": [
-                {"type": "header", "pattern": r"x-amzn-"},
+                {"type": "header", "pattern": r"x-amzn-"],
                 {"type": "header", "pattern": r"server", "value": r"AmazonS3"],
             ],
             "category": "Cloud Provider",
@@ -907,7 +945,7 @@ FINGERPRINTS = {
         },
         "Google Cloud": {
             "patterns": [
-                {"type": "header", "pattern": r"x-goog-"},
+                {"type": "header", "pattern": r"x-goog-"],
                 {"type": "header", "pattern": r"server", "value": r"Google Frontend"],
             ],
             "category": "Cloud Provider",
@@ -917,9 +955,9 @@ FINGERPRINTS = {
     "analytics_marketing": {
         "Google Analytics": {
             "patterns": [
-                {"type": "script", "pattern": r"google-analytics\.com/analytics\.js"},
-                {"type": "script", "pattern": r"googletagmanager\.com/gtag"},
-                {"type": "script", "pattern": r"www\.google-analytics\.com/ga\.js"},
+                {"type": "script", "pattern": r"google-analytics\.com/analytics\.js"],
+                {"type": "script", "pattern": r"googletagmanager\.com/gtag"],
+                {"type": "script", "pattern": r"www\.google-analytics\.com/ga\.js"],
                 {"type": "script_content", "pattern": r"gtag\(|ga\("},
             ],
             "category": "Analytics",
@@ -927,7 +965,7 @@ FINGERPRINTS = {
         },
         "Google Tag Manager": {
             "patterns": [
-                {"type": "script", "pattern": r"googletagmanager\.com/gtm\.js"},
+                {"type": "script", "pattern": r"googletagmanager\.com/gtm\.js"],
                 {"type": "html", "pattern": r"GTM-[A-Z0-9]+"],
             ],
             "category": "Tag Manager",
@@ -935,7 +973,7 @@ FINGERPRINTS = {
         },
         "Facebook Pixel": {
             "patterns": [
-                {"type": "script", "pattern": r"connect\.facebook\.net"},
+                {"type": "script", "pattern": r"connect\.facebook\.net"],
                 {"type": "script_content", "pattern": r"fbq\("},
             ],
             "category": "Analytics",
@@ -943,15 +981,15 @@ FINGERPRINTS = {
         },
         "Hotjar": {
             "patterns": [
-                {"type": "script", "pattern": r"static\.hotjar\.com"},
-                {"type": "script_content", "pattern": r"hj\(|hjid"},
+                {"type": "script", "pattern": r"static\.hotjar\.com"],
+                {"type": "script_content", "pattern": r"hj\(|hjid"],
             ],
             "category": "Analytics",
             "website": "https://www.hotjar.com"
         },
         "Mixpanel": {
             "patterns": [
-                {"type": "script", "pattern": r"cdn\.mxpnl\.com"},
+                {"type": "script", "pattern": r"cdn\.mxpnl\.com"],
                 {"type": "script_content", "pattern": r"mixpanel\."],
             ],
             "category": "Analytics",
@@ -959,7 +997,7 @@ FINGERPRINTS = {
         },
         "Segment": {
             "patterns": [
-                {"type": "script", "pattern": r"cdn\.segment\.com"},
+                {"type": "script", "pattern": r"cdn\.segment\.com"],
                 {"type": "script_content", "pattern": r"analytics\."],
             ],
             "category": "Analytics",
@@ -967,7 +1005,7 @@ FINGERPRINTS = {
         },
         "Amplitude": {
             "patterns": [
-                {"type": "script", "pattern": r"cdn\.amplitude\.com"},
+                {"type": "script", "pattern": r"cdn\.amplitude\.com"],
                 {"type": "script_content", "pattern": r"amplitude\."],
             ],
             "category": "Analytics",
@@ -975,7 +1013,7 @@ FINGERPRINTS = {
         },
         "Heap": {
             "patterns": [
-                {"type": "script", "pattern": r"heapanalytics\.com"},
+                {"type": "script", "pattern": r"heapanalytics\.com"],
                 {"type": "script_content", "pattern": r"heap\."],
             ],
             "category": "Analytics",
@@ -990,7 +1028,7 @@ FINGERPRINTS = {
         },
         "Matomo": {
             "patterns": [
-                {"type": "script", "pattern": r"matomo\.js"},
+                {"type": "script", "pattern": r"matomo\.js"],
                 {"type": "script_content", "pattern": r"_paq\.push"],
             ],
             "category": "Analytics",
@@ -998,7 +1036,7 @@ FINGERPRINTS = {
         },
         "HubSpot": {
             "patterns": [
-                {"type": "script", "pattern": r"js\.hs-scripts\.com"},
+                {"type": "script", "pattern": r"js\.hs-scripts\.com"],
                 {"type": "script", "pattern": r"js\.hubspot\.com"],
             ],
             "category": "Marketing",
@@ -1006,7 +1044,7 @@ FINGERPRINTS = {
         },
         "Mailchimp": {
             "patterns": [
-                {"type": "script", "pattern": r"chimpstatic\.com"},
+                {"type": "script", "pattern": r"chimpstatic\.com"],
                 {"type": "html", "pattern": r"mailchimp"],
             ],
             "category": "Marketing",
@@ -1014,7 +1052,7 @@ FINGERPRINTS = {
         },
         "Intercom": {
             "patterns": [
-                {"type": "script", "pattern": r"widget\.intercom\.io"},
+                {"type": "script", "pattern": r"widget\.intercom\.io"],
                 {"type": "script_content", "pattern": r"Intercom\("},
             ],
             "category": "Customer Support",
@@ -1029,7 +1067,7 @@ FINGERPRINTS = {
         },
         "Zendesk": {
             "patterns": [
-                {"type": "script", "pattern": r"static\.zdassets\.com"},
+                {"type": "script", "pattern": r"static\.zdassets\.com"],
                 {"type": "html", "pattern": r"zendesk"],
             ],
             "category": "Customer Support",
@@ -1074,7 +1112,7 @@ FINGERPRINTS = {
     "fonts_icons": {
         "Google Fonts": {
             "patterns": [
-                {"type": "css", "pattern": r"fonts\.googleapis\.com"},
+                {"type": "css", "pattern": r"fonts\.googleapis\.com"],
                 {"type": "css", "pattern": r"fonts\.gstatic\.com"],
             ],
             "category": "Fonts",
@@ -1082,24 +1120,24 @@ FINGERPRINTS = {
         },
         "Font Awesome": {
             "patterns": [
-                {"type": "css", "pattern": r"font-awesome(?:\.min)?\.css"},
-                {"type": "css", "pattern": r"fontawesome"},
-                {"type": "html", "pattern": r"class=\"fa[rsb]? fa-"},
+                {"type": "css", "pattern": r"font-awesome(?:\.min)?\.css"],
+                {"type": "css", "pattern": r"fontawesome"],
+                {"type": "html", "pattern": r"class=\"fa[rsb]? fa-"],
             ],
             "category": "Icons",
             "website": "https://fontawesome.com"
         },
         "Material Icons": {
             "patterns": [
-                {"type": "css", "pattern": r"fonts\.googleapis\.com/icon"},
-                {"type": "html", "pattern": r"class=\"material-icons"},
+                {"type": "css", "pattern": r"fonts\.googleapis\.com/icon"],
+                {"type": "html", "pattern": r"class=\"material-icons"],
             ],
             "category": "Icons",
             "website": "https://fonts.google.com/icons"
         },
         "Ionicons": {
             "patterns": [
-                {"type": "script", "pattern": r"ionicons"},
+                {"type": "script", "pattern": r"ionicons"],
                 {"type": "html", "pattern": r"ion-icon"],
             ],
             "category": "Icons",
@@ -1107,7 +1145,7 @@ FINGERPRINTS = {
         },
         "Feather Icons": {
             "patterns": [
-                {"type": "script", "pattern": r"feather(?:\.min)?\.js"},
+                {"type": "script", "pattern": r"feather(?:\.min)?\.js"],
                 {"type": "html", "pattern": r"data-feather"],
             ],
             "category": "Icons",
@@ -1122,7 +1160,7 @@ FINGERPRINTS = {
         },
         "Bootstrap Icons": {
             "patterns": [
-                {"type": "css", "pattern": r"bootstrap-icons"},
+                {"type": "css", "pattern": r"bootstrap-icons"],
                 {"type": "html", "pattern": r"class=\"bi bi-"],
             ],
             "category": "Icons",
@@ -1139,7 +1177,7 @@ FINGERPRINTS = {
     "payment": {
         "Stripe": {
             "patterns": [
-                {"type": "script", "pattern": r"js\.stripe\.com"},
+                {"type": "script", "pattern": r"js\.stripe\.com"],
                 {"type": "script_content", "pattern": r"Stripe\("},
             ],
             "category": "Payment",
@@ -1147,7 +1185,7 @@ FINGERPRINTS = {
         },
         "PayPal": {
             "patterns": [
-                {"type": "script", "pattern": r"paypal\.com/sdk"},
+                {"type": "script", "pattern": r"paypal\.com/sdk"],
                 {"type": "html", "pattern": r"paypal"],
             ],
             "category": "Payment",
@@ -1155,7 +1193,7 @@ FINGERPRINTS = {
         },
         "Square": {
             "patterns": [
-                {"type": "script", "pattern": r"squareup\.com"},
+                {"type": "script", "pattern": r"squareup\.com"],
                 {"type": "script", "pattern": r"square\.js"],
             ],
             "category": "Payment",
@@ -1186,7 +1224,7 @@ FINGERPRINTS = {
     "security": {
         "reCAPTCHA": {
             "patterns": [
-                {"type": "script", "pattern": r"google\.com/recaptcha"},
+                {"type": "script", "pattern": r"google\.com/recaptcha"],
                 {"type": "html", "pattern": r"g-recaptcha"],
             ],
             "category": "Security",
@@ -1194,7 +1232,7 @@ FINGERPRINTS = {
         },
         "hCaptcha": {
             "patterns": [
-                {"type": "script", "pattern": r"hcaptcha\.com"},
+                {"type": "script", "pattern": r"hcaptcha\.com"],
                 {"type": "html", "pattern": r"h-captcha"],
             ],
             "category": "Security",
@@ -1209,7 +1247,7 @@ FINGERPRINTS = {
         },
         "Auth0": {
             "patterns": [
-                {"type": "script", "pattern": r"auth0\.com|auth0-js"},
+                {"type": "script", "pattern": r"auth0\.com|auth0-js"],
                 {"type": "html", "pattern": r"auth0"],
             ],
             "category": "Authentication",
@@ -1229,12 +1267,54 @@ FINGERPRINTS = {
             "category": "Authentication",
             "website": "https://supabase.com"
         },
+        "Firebase Auth": {
+            "patterns": [
+                {"type": "script", "pattern": r"firebase\.com|firebase-app"],
+                {"type": "script_content", "pattern": r"firebase\.auth"],
+            ],
+            "category": "Authentication",
+            "website": "https://firebase.google.com"
+        },
+    },
+    "ai_ml": {
+        "OpenAI": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"openai|gpt-|chatgpt"],
+                {"type": "script", "pattern": r"openai\.com|api\.openai\.com"],
+            ],
+            "category": "AI / ML",
+            "website": "https://openai.com"
+        },
+        "LangChain": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"langchain|LangChain"],
+                {"type": "script", "pattern": r"langchain\.js"],
+            ],
+            "category": "AI / ML",
+            "website": "https://www.langchain.com"
+        },
+        "Hugging Face": {
+            "patterns": [
+                {"type": "script_content", "pattern": r"huggingface|transformers"],
+                {"type": "script", "pattern": r"huggingface\.co"],
+            ],
+            "category": "AI / ML",
+            "website": "https://huggingface.co"
+        },
+        "TensorFlow.js": {
+            "patterns": [
+                {"type": "script", "pattern": r"tensorflow\.js|tf\.js"],
+                {"type": "script_content", "pattern": r"tensorflow|tfjs"],
+            ],
+            "category": "AI / ML",
+            "website": "https://www.tensorflow.org/js"
+        },
     },
     "video_media": {
         "YouTube": {
             "patterns": [
-                {"type": "html", "pattern": r"youtube\.com/embed"},
-                {"type": "html", "pattern": r"youtube-nocookie\.com"},
+                {"type": "html", "pattern": r"youtube\.com/embed"],
+                {"type": "html", "pattern": r"youtube-nocookie\.com"],
                 {"type": "script", "pattern": r"youtube\.com/iframe_api"],
             ],
             "category": "Video",
@@ -1242,7 +1322,7 @@ FINGERPRINTS = {
         },
         "Vimeo": {
             "patterns": [
-                {"type": "html", "pattern": r"player\.vimeo\.com"},
+                {"type": "html", "pattern": r"player\.vimeo\.com"],
                 {"type": "script", "pattern": r"player\.vimeo\.com"],
             ],
             "category": "Video",
@@ -1250,7 +1330,7 @@ FINGERPRINTS = {
         },
         "Wistia": {
             "patterns": [
-                {"type": "script", "pattern": r"wistia\.com"},
+                {"type": "script", "pattern": r"wistia\.com"],
                 {"type": "html", "pattern": r"wistia_embed"],
             ],
             "category": "Video",
@@ -1265,7 +1345,7 @@ FINGERPRINTS = {
         },
         "Video.js": {
             "patterns": [
-                {"type": "script", "pattern": r"video(?:\.min)?\.js"},
+                {"type": "script", "pattern": r"video(?:\.min)?\.js"],
                 {"type": "html", "pattern": r"video-js"],
             ],
             "category": "Video",
@@ -1275,7 +1355,7 @@ FINGERPRINTS = {
     "social": {
         "Facebook SDK": {
             "patterns": [
-                {"type": "script", "pattern": r"connect\.facebook\.net"},
+                {"type": "script", "pattern": r"connect\.facebook\.net"],
                 {"type": "html", "pattern": r"fb-root"],
             ],
             "category": "Social",
@@ -1320,8 +1400,8 @@ FINGERPRINTS = {
     "misc": {
         "PWA": {
             "patterns": [
-                {"type": "html", "pattern": r"manifest\.json"},
-                {"type": "meta", "pattern": r"apple-mobile-web-app-capable"},
+                {"type": "html", "pattern": r"manifest\.json"],
+                {"type": "meta", "pattern": r"apple-mobile-web-app-capable"],
                 {"type": "html", "pattern": r"service-?worker"],
             ],
             "category": "Web Technology",
@@ -1329,7 +1409,7 @@ FINGERPRINTS = {
         },
         "AMP": {
             "patterns": [
-                {"type": "html", "pattern": r"<html[^>]*amp"},
+                {"type": "html", "pattern": r"<html[^>]*amp"],
                 {"type": "script", "pattern": r"cdn\.ampproject\.org"],
             ],
             "category": "Web Technology",
@@ -1337,7 +1417,7 @@ FINGERPRINTS = {
         },
         "WebAssembly": {
             "patterns": [
-                {"type": "script_content", "pattern": r"WebAssembly"},
+                {"type": "script_content", "pattern": r"WebAssembly"],
                 {"type": "script", "pattern": r"\.wasm"],
             ],
             "category": "Web Technology",
@@ -1345,7 +1425,7 @@ FINGERPRINTS = {
         },
         "GraphQL": {
             "patterns": [
-                {"type": "script_content", "pattern": r"graphql"},
+                {"type": "script_content", "pattern": r"graphql"],
                 {"type": "url", "pattern": r"/graphql"],
             ],
             "category": "API",
@@ -1360,7 +1440,7 @@ FINGERPRINTS = {
         },
         "webpack": {
             "patterns": [
-                {"type": "script_content", "pattern": r"webpackJsonp"},
+                {"type": "script_content", "pattern": r"webpackJsonp"],
                 {"type": "script", "pattern": r"webpack"],
             ],
             "category": "Build Tool",
@@ -1368,7 +1448,7 @@ FINGERPRINTS = {
         },
         "Vite": {
             "patterns": [
-                {"type": "script", "pattern": r"@vite"},
+                {"type": "script", "pattern": r"@vite"],
                 {"type": "script", "pattern": r"vite"],
             ],
             "category": "Build Tool",
@@ -1390,7 +1470,7 @@ FINGERPRINTS = {
         },
         "Sentry": {
             "patterns": [
-                {"type": "script", "pattern": r"sentry"},
+                {"type": "script", "pattern": r"sentry"],
                 {"type": "script", "pattern": r"browser\.sentry-cdn\.com"],
             ],
             "category": "Error Tracking",
@@ -1433,8 +1513,8 @@ FINGERPRINTS = {
         },
         "Firebase": {
             "patterns": [
-                {"type": "script", "pattern": r"firebase\.com|firebase-app"},
-                {"type": "script_content", "pattern": r"firebase"},
+                {"type": "script", "pattern": r"firebase\.com|firebase-app"],
+                {"type": "script_content", "pattern": r"firebase"],
             ],
             "category": "Backend / BaaS",
             "website": "https://firebase.google.com"
