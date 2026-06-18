@@ -13,7 +13,7 @@ FINGERPRINTS = {
             "patterns": [ {"type": "script", "pattern": r"ember(?:\.min)?\.js"} ],
             "category": "JavaScript Framework (Legacy)", "website": "https://emberjs.com"
         },
-        # === Modern ===
+        # === Modern Frameworks ===
         "React": {
             "patterns": [ {"type": "script", "pattern": r"react(?:\.min)?\.js"} ],
             "category": "JavaScript Framework", "website": "https://reactjs.org"
@@ -99,6 +99,40 @@ FINGERPRINTS = {
         "Anthropic Claude": {
             "patterns": [ {"type": "script_content", "pattern": r"anthropic|claude"} ],
             "category": "AI / ML", "website": "https://www.anthropic.com"
+        },
+    },
+    "analytics": {
+        "Google Analytics": {
+            "patterns": [ {"type": "script", "pattern": r"google-analytics|gtag|ga\.js"} ],
+            "category": "Analytics", "website": "https://analytics.google.com"
+        },
+        "Matomo": {
+            "patterns": [ {"type": "script", "pattern": r"matomo|piwik"} ],
+            "category": "Analytics", "website": "https://matomo.org"
+        },
+    },
+    "ecommerce": {
+        "Shopify": {
+            "patterns": [ {"type": "script", "pattern": r"shopify|cdn\.shopify\.com"} ],
+            "category": "E-commerce", "website": "https://www.shopify.com"
+        },
+        "WooCommerce": {
+            "patterns": [ {"type": "script", "pattern": r"woocommerce"} ],
+            "category": "E-commerce", "website": "https://woocommerce.com"
+        },
+    },
+    "hosting_cdn": {
+        "Vercel": {
+            "patterns": [ {"type": "header", "pattern": r"x-vercel", "value": r"1"} ],
+            "category": "Hosting / CDN", "website": "https://vercel.com"
+        },
+        "Netlify": {
+            "patterns": [ {"type": "header", "pattern": r"x-nf-request-id"} ],
+            "category": "Hosting / CDN", "website": "https://www.netlify.com"
+        },
+        "Cloudflare": {
+            "patterns": [ {"type": "header", "pattern": r"cf-ray"} ],
+            "category": "Hosting / CDN", "website": "https://www.cloudflare.com"
         },
     },
 }
