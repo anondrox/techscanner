@@ -179,6 +179,51 @@ FINGERPRINTS = {
             "category": "Monitoring", "website": "https://www.datadoghq.com"
         },
     },
+    "cicd": {
+        "GitHub Actions": {
+            "patterns": [ {"type": "html", "pattern": r"github\.com/.*/actions"} ],
+            "category": "CI/CD", "website": "https://github.com/features/actions"
+        },
+        "GitLab CI": {
+            "patterns": [ {"type": "html", "pattern": r"\.gitlab-ci\.yml"} ],
+            "category": "CI/CD", "website": "https://docs.gitlab.com/ee/ci/"
+        },
+        "Jenkins": {
+            "patterns": [ {"type": "html", "pattern": r"jenkins"} ],
+            "category": "CI/CD", "website": "https://www.jenkins.io"
+        },
+        "CircleCI": {
+            "patterns": [ {"type": "html", "pattern": r"circleci"} ],
+            "category": "CI/CD", "website": "https://circleci.com"
+        },
+    },
+    "graphql": {
+        "GraphQL": {
+            "patterns": [
+                {"type": "html", "pattern": r"graphql"},
+                {"type": "script_content", "pattern": r"graphql|ApolloClient|useQuery"},
+                {"type": "url", "pattern": r"/graphql"}
+            ],
+            "category": "GraphQL", "website": "https://graphql.org"
+        },
+        "Apollo Client": {
+            "patterns": [ {"type": "script_content", "pattern": r"@apollo/client|ApolloProvider"} ],
+            "category": "GraphQL", "website": "https://www.apollographql.com"
+        },
+    },
+    "api": {
+        "REST API": {
+            "patterns": [
+                {"type": "html", "pattern": r"/api/|rest|swagger|openapi"},
+                {"type": "url", "pattern": r"/api/"}
+            ],
+            "category": "API / REST", "website": "https://restfulapi.net"
+        },
+        "Swagger / OpenAPI": {
+            "patterns": [ {"type": "html", "pattern": r"swagger|openapi"} ],
+            "category": "API Documentation", "website": "https://swagger.io"
+        },
+    },
 }
 
 SECURITY_HEADERS = {
