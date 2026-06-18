@@ -13,12 +13,17 @@ from .fingerprints import FINGERPRINTS, SECURITY_HEADERS
 from .cve_lookup import CVELookup, CVEInfo, format_cve_for_display, FRAMEWORK_ENDPOINTS, ENDPOINT_VERSION_PATTERNS, COMMON_ENDPOINTS
 
 
-# Common Tech Stack Definitions
+# Common Tech Stack Definitions (Expanded in v2.1)
 TECH_STACKS = {
     "Next.js Stack": {
         "core": ["Next.js", "React"],
-        "recommended": ["Tailwind CSS", "shadcn/ui", "Vercel"],
-        "description": "Modern React framework with server components"
+        "recommended": ["Tailwind CSS", "shadcn/ui", "Vercel", "tRPC"],
+        "description": "Modern full-stack React framework"
+    },
+    "T3 Stack": {
+        "core": ["Next.js", "React", "Tailwind CSS"],
+        "recommended": ["tRPC", "Prisma", "Drizzle"],
+        "description": "Popular type-safe full-stack stack"
     },
     "Nuxt Stack": {
         "core": ["Nuxt.js", "Vue.js"],
@@ -30,30 +35,55 @@ TECH_STACKS = {
         "recommended": ["Tailwind CSS"],
         "description": "Fast, lightweight Svelte framework"
     },
+    "MERN Stack": {
+        "core": ["MongoDB", "Express.js", "React", "Node.js"],
+        "recommended": ["Tailwind CSS", "Redux"],
+        "description": "Classic JavaScript full-stack"
+    },
     "Laravel Stack": {
         "core": ["Laravel", "PHP"],
-        "recommended": ["Tailwind CSS"],
-        "description": "Popular PHP framework"
+        "recommended": ["Tailwind CSS", "Livewire"],
+        "description": "Elegant PHP framework"
     },
     "Django Stack": {
         "core": ["Django", "Python"],
+        "recommended": ["Tailwind CSS", "Celery"],
+        "description": "Batteries-included Python framework"
+    },
+    "FastAPI Stack": {
+        "core": ["FastAPI", "Python"],
+        "recommended": ["SQLAlchemy", "Pydantic"],
+        "description": "High-performance Python API framework"
+    },
+    "Spring Boot Stack": {
+        "core": ["Spring", "Java"],
+        "recommended": ["Spring Boot"],
+        "description": "Enterprise Java framework"
+    },
+    "Ruby on Rails Stack": {
+        "core": ["Ruby on Rails", "Ruby"],
         "recommended": ["Tailwind CSS"],
-        "description": "High-level Python web framework"
+        "description": "Convention over configuration"
     },
     "WordPress Stack": {
         "core": ["WordPress", "PHP"],
-        "recommended": ["Elementor", "WooCommerce"],
-        "description": "Most popular CMS"
+        "recommended": ["WooCommerce", "Elementor"],
+        "description": "Most popular CMS in the world"
     },
     "Shopify Stack": {
         "core": ["Shopify"],
-        "recommended": ["Hydrogen", "Remix"],
-        "description": "E-commerce platform"
+        "recommended": ["Hydrogen", "Remix", "Storefront API"],
+        "description": "Modern e-commerce platform"
     },
     "Astro Stack": {
         "core": ["Astro"],
-        "recommended": ["React", "Vue.js", "Tailwind CSS"],
+        "recommended": ["React", "Vue.js", "Tailwind CSS", "MDX"],
         "description": "Content-focused static site generator"
+    },
+    "Jamstack": {
+        "core": ["Next.js", "Gatsby", "Astro"],
+        "recommended": ["Netlify", "Vercel", "Cloudflare"],
+        "description": "Modern web architecture"
     },
 }
 
