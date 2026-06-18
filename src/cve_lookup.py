@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import nvdlib
 import requests
 import time
+import math
 
 
 @dataclass
@@ -121,16 +122,14 @@ class CVELookup:
                 return True
         return False
 
-    # ==================== Improved OSV CVSS Parsing ====================
+    # ==================== Full CVSS v3.1 Base Score Calculation ====================
     def _parse_cvss_vector(self, vector: str) -> Dict[str, str]:
-        """Parse CVSS vector string into metric dictionary"""
         metrics = {}
         if not vector or not vector.startswith("CVSS:"):
             return metrics
         try:
-            # Remove CVSS:3.1/ or CVSS:4.0/ prefix
             parts = vector.split("/")
-            for part in parts[1:]:  # Skip the CVSS version part
+            for part in parts[1:]:
                 if ":" in part:
                     key, value = part.split(":", 1)
                     metrics[key.upper()] = value.upper()
@@ -138,8 +137,77 @@ class CVELookup:
             pass
         return metrics
 
+    def _calculate_cvss_base_score(self, metrics: Dict[str, str]) -> tuple:
+        """
+        Calculate accurate CVSS v3.1 Base Score.
+        Returns (score, severity)
+        """
+        if not metrics:
+            return 0.0, "UNKNOWN"
+
+        # Metric values
+        AV = metrics.get('AV', 'N')
+        AC = metrics.get('AC', 'L')
+        PR = metrics.get('PR', 'N')
+        UI = metrics.get('UI', 'N')
+        S  = metrics.get('S', 'U')
+        C  = metrics.get('C', 'N')
+        I  = metrics.get('I', 'N')
+        A  = metrics.get('A', 'N')
+
+        # Exploitability metrics
+        av_values = {'N': 0.85, 'A': 0.62, 'L': 0.55, 'P': 0.2}
+        ac_values = {'L': 0.77, 'H': 0.44}
+        ui_values = {'N': 0.85, 'R': 0.62}
+        pr_values = {
+            'N': {'U': 0.85, 'C': 0.68},
+            'L': {'U': 0.62, 'C': 0.68},
+            'H': {'U': 0.27, 'C': 0.50}
+        }
+
+        exploitability = 8.22 * av_values.get(AV, 0.85) * \
+                         ac_values.get(AC, 0.77) * \
+                         pr_values.get(PR, pr_values['N']).get(S, 0.85) * \
+                         ui_values.get(UI, 0.85)
+
+        # Impact metrics
+        cia_values = {'N': 0.0, 'L': 0.22, 'H': 0.56}
+        conf = cia_values.get(C, 0.0)
+        integ = cia_values.get(I, 0.0)
+        avail = cia_values.get(A, 0.0)
+
+        # Impact Sub-score
+        iss = 1 - ((1 - conf) * (1 - integ) * (1 - avail))
+
+        if S == 'U':  # Unchanged
+            impact = 6.42 * iss
+        else:  # Changed
+            impact = 7.52 * (iss - 0.029) - 3.25 * math.pow(iss - 0.02, 15)
+
+        if impact <= 0:
+            base_score = 0.0
+        else:
+            if S == 'U':
+                base_score = min( math.ceil( min(impact + exploitability, 10) * 10 ) / 10 , 10)
+            else:
+                base_score = min( math.ceil( min(1.08 * (impact + exploitability), 10) * 10 ) / 10 , 10)
+
+        # Determine severity
+        if base_score >= 9.0:
+            severity = "CRITICAL"
+        elif base_score >= 7.0:
+            severity = "HIGH"
+        elif base_score >= 4.0:
+            severity = "MEDIUM"
+        elif base_score > 0:
+            severity = "LOW"
+        else:
+            severity = "NONE"
+
+        return round(base_score, 1), severity
+
     def _get_osv_severity(self, osv_vuln: Dict) -> tuple:
-        """Improved CVSS-based severity extraction from OSV"""
+        """Use full CVSS calculation when possible"""
         severity = "UNKNOWN"
         score = 0.0
 
@@ -157,41 +225,9 @@ class CVELookup:
                 continue
 
             metrics = self._parse_cvss_vector(score_str)
-            if not metrics:
-                continue
-
-            # Extract key metrics
-            av = metrics.get("AV", "")      # Attack Vector
-            ac = metrics.get("AC", "")      # Attack Complexity
-            pr = metrics.get("PR", "")      # Privileges Required
-            ui = metrics.get("UI", "")      # User Interaction
-            s = metrics.get("S", "")        # Scope
-            c = metrics.get("C", "")        # Confidentiality
-            i = metrics.get("I", "")        # Integrity
-            a = metrics.get("A", "")        # Availability
-
-            # Improved severity logic
-            is_network = av == "N"
-            is_high_impact = (c == "H" or i == "H" or a == "H")
-            is_medium_impact = (c == "L" or i == "L" or a == "L")
-
-            if is_network and is_high_impact:
-                severity = "CRITICAL"
-                score = 9.0
-            elif is_network and (is_medium_impact or ac == "L"):
-                severity = "HIGH"
-                score = 7.5
-            elif is_high_impact:
-                severity = "HIGH"
-                score = 7.0
-            elif is_medium_impact:
-                severity = "MEDIUM"
-                score = 5.0
-            else:
-                severity = "MEDIUM"
-                score = 4.0
-
-            break  # Use first valid CVSS entry
+            if metrics:
+                score, severity = self._calculate_cvss_base_score(metrics)
+                break
 
         return severity, score
 
@@ -231,7 +267,6 @@ class CVELookup:
         cves: List[CVEInfo] = []
         cpe_info = CPE_MAPPING.get(tech_name)
         
-        # NVD
         if cpe_info:
             try:
                 elapsed = time.time() - self._last_request
@@ -286,7 +321,6 @@ class CVELookup:
             except:
                 pass
         
-        # OSV.dev
         if version and len(cves) < max_results:
             try:
                 ecosystem_map = {
