@@ -160,6 +160,30 @@ def display_single_result(result: dict, show_details: bool = True, show_cves: bo
     if result.get('page_info', {}).get('title'):
         console.print(f"[bold]Page Title:[/bold] {result['page_info']['title']}")
     
+    # Display WAF / CDN Detection
+    waf_detected = []
+    cdn_detected = []
+    
+    for tech in result.get('technologies', []):
+        if 'WAF' in tech.get('category', '') or 'Protection' in tech.get('category', ''):
+            waf_detected.append(tech['name'])
+        if tech.get('category') == 'CDN':
+            cdn_detected.append(tech['name'])
+    
+    if waf_detected:
+        console.print(Panel(
+            "\n".join([f"[bold red]• {w}[/bold red]" for w in waf_detected]),
+            title="[bold red]WAF Detected[/bold red]",
+            box=box.ROUNDED
+        ))
+    
+    if cdn_detected:
+        console.print(Panel(
+            "\n".join([f"[bold cyan]• {c}[/bold cyan]" for c in cdn_detected]),
+            title="[bold cyan]CDN Detected[/bold cyan]",
+            box=box.ROUNDED
+        ))
+    
     # Display Tech Stacks
     if show_stacks and result.get('tech_stacks'):
         stacks = result['tech_stacks']
@@ -380,9 +404,8 @@ def save_results(results: List[dict], output_path: str, format_type: str = 'json
 
 
 def generate_html_report(results: List[dict], output_path: str):
-    """Generate a much improved beautiful HTML report"""
-    html = f"""
-<!DOCTYPE html>
+    """Generate improved HTML report with WAF/CDN and Security sections"""
+    html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -424,8 +447,10 @@ def generate_html_report(results: List[dict], output_path: str):
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             border: 1px solid #334155;
         }}
-        .stack-card {{
-            background: linear-gradient(135deg, #1e2937, #334155);
+        .waf-card {{
+            border-left: 5px solid #ef4444;
+        }}
+        .cdn-card {{
             border-left: 5px solid #22d3ee;
         }}
         table {{
@@ -472,25 +497,27 @@ def generate_html_report(results: List[dict], output_path: str):
             
         url = result.get('final_url', result.get('url', ''))
         techs = result.get('technologies', [])
-        stacks = result.get('tech_stacks', [])
-        security = result.get('security', {})
         
-        # Tech Stacks Section
-        if stacks:
-            html += '<div class="card stack-card">'
-            html += '<h2 style="margin-top:0; color:#67e8f9;">🧱 Detected Tech Stack(s)</h2>'
-            for stack in stacks[:3]:
-                html += f"""
-                <div style="margin-bottom: 16px;">
-                    <strong style="font-size:1.1rem;">{stack['name']}</strong><br>
-                    <span style="color:#94a3b8;">{stack['description']}</span>
-                </div>
-                """
-            html += '</div>'
+        # Detect WAF and CDN
+        waf_list = [t['name'] for t in techs if 'WAF' in t.get('category', '') or 'Protection' in t.get('category', '')]
+        cdn_list = [t['name'] for t in techs if t.get('category') == 'CDN']
+        
+        # WAF Section
+        if waf_list:
+            html += f'''<div class="card waf-card">
+                <h2 style="color:#ef4444; margin-top:0;">🛡️ WAF Detected</h2>
+                <ul>{"".join([f"<li><strong>{w}</strong></li>" for w in waf_list])}</ul>
+            </div>'''
+        
+        # CDN Section
+        if cdn_list:
+            html += f'''<div class="card cdn-card">
+                <h2 style="color:#22d3ee; margin-top:0;">🌐 CDN Detected</h2>
+                <ul>{"".join([f"<li><strong>{c}</strong></li>" for c in cdn_list])}</ul>
+            </div>'''
         
         # Technologies
-        html += f"""
-        <div class="card">
+        html += f'''<div class="card">
             <h2 style="margin-top:0;">🌐 {url}</h2>
             <p><strong>Technologies Detected:</strong> {len(techs)} | <strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s</p>
             
@@ -502,33 +529,27 @@ def generate_html_report(results: List[dict], output_path: str):
                     <th>Category</th>
                     <th>Confidence</th>
                 </tr>
-        """
+        '''
         
         for tech in sorted(techs, key=lambda x: -x.get('confidence', 0)):
             conf = tech.get('confidence', 0)
             conf_class = 'confidence-high' if conf >= 0.8 else 'confidence-medium' if conf >= 0.5 else 'confidence-low'
-            html += f"""
-                <tr>
+            html += f'''<tr>
                     <td class="tech-name">{tech['name']}</td>
                     <td>{tech.get('version', 'Unknown')}</td>
                     <td>{tech.get('category', '')}</td>
                     <td class="{conf_class}">{conf*100:.0f}%</td>
-                </tr>
-            """
+                </tr>'''
         
-        html += """
-            </table>
-        </div>
-        """
+        html += '''</table>
+        </div>'''
     
-    html += """
-        <div style="text-align:center; margin-top:60px; color:#64748b; font-size:0.9rem;">
+    html += '''<div style="text-align:center; margin-top:60px; color:#64748b; font-size:0.9rem;">
             Generated by TechScanner v2.0 • Made with ❤️ by anondrox
         </div>
     </div>
 </body>
-</html>
-    """
+</html>'''
     
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
@@ -538,7 +559,7 @@ def generate_html_report(results: List[dict], output_path: str):
 
 async def run_analysis(urls: List[str], concurrency: int, show_details: bool, 
                        enable_cve: bool = False, nvd_api_key: Optional[str] = None, show_stacks: bool = True):
-    detector = TechDetector(timeout=20, enable_cve=enable_cve, nvd_api_key=nvd_api_key)
+    detector = TechDetector(timeout=25, enable_cve=enable_cve, nvd_api_key=nvd_api_key)
     
     urls = urls or []
     if len(urls) == 1:
@@ -589,7 +610,7 @@ def main():
     parser.add_argument('url', nargs='?', help='URL to analyze')
     parser.add_argument('-f', '--file', help='File containing URLs (one per line)')
     parser.add_argument('-o', '--output', help='Output file path (.json, .csv, .html)')
-    parser.add_argument('-c', '--concurrency', type=int, default=5, help='Concurrent requests (default: 5)')
+    parser.add_argument('-c', '--concurrency', type=int, default=2, help='Concurrent requests (default: 2 for stealth)')
     parser.add_argument('--cve', action='store_true', help='Enable CVE vulnerability scanning')
     parser.add_argument('--brief', action='store_true', help='Show only technologies')
     parser.add_argument('--json', action='store_true', help='Output raw JSON to stdout')
