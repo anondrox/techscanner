@@ -50,6 +50,10 @@ CPE_MAPPING = {
     "Nginx": {"vendor": "f5", "product": "nginx"},
     "Apache": {"vendor": "apache", "product": "http_server"},
     "PHP": {"vendor": "php", "product": "php"},
+    # Microsoft / Legacy
+    "Microsoft IIS": {"vendor": "microsoft", "product": "iis"},
+    "ASP.NET": {"vendor": "microsoft", "product": "asp.net"},
+    "ASP.NET Web Forms": {"vendor": "microsoft", "product": "asp.net"},
 }
 
 VERSION_PATTERNS = {
