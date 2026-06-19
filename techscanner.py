@@ -4,15 +4,12 @@ import asyncio
 import json
 import sys
 import os
-from pathlib import Path
 from typing import List, Optional
 
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.text import Text
-from rich.layout import Layout
 from rich import box
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
