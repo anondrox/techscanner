@@ -56,7 +56,7 @@ FINGERPRINTS = {
         "Classic ASP": {
             "patterns": [
                 {"type": "header", "pattern": r"server", "value": r"ASP"},
-                {"type": "html", "pattern": r"\.asp(\?|$|")"}
+                {"type": "html", "pattern": r"\.asp"}
             ],
             "category": "Web Framework (Legacy)",
             "website": "https://learn.microsoft.com/en-us/previous-versions/iis/6.0-sdk/ms525837(v=vs.90)"
