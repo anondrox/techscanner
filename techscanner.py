@@ -148,11 +148,12 @@ def display_vulnerabilities(vulnerabilities: dict):
 
 def display_single_result(result: dict, show_details: bool = True, show_cves: bool = False, show_stacks: bool = True):
     if not result.get('success'):
-        console.print(f"\n[red]Error analyzing {result['url']}:[/red] {result.get('error', 'Unknown error')}")
+        console.print(f"\n[red]Error analyzing {result.get('url', 'Unknown')}:[/red] {result.get('error', 'Unknown error')}")
         return
     
-    console.print(f"\n[bold cyan]Analysis Results for:[/bold cyan] {result['final_url']}")
-    console.print(f"[dim]Analysis completed in {result['analysis_time']}s[/dim]\n")
+    final_url = result.get('final_url') or result.get('url', 'Unknown')
+    console.print(f"\n[bold cyan]Analysis Results for:[/bold cyan] {final_url}")
+    console.print(f"[dim]Analysis completed in {result.get('analysis_time', 0)}s[/dim]\n")
     
     if result.get('page_info', {}).get('title'):
         console.print(f"[bold]Page Title:[/bold] {result['page_info']['title']}")
@@ -345,7 +346,7 @@ def display_batch_summary(results: List[dict], show_cves: bool = False):
     summary_table.add_column("Time", justify="right", width=6)
     
     for result in results:
-        url = result.get('final_url', result.get('url', 'Unknown')) or 'Unknown'
+        url = result.get('final_url') or result.get('url', 'Unknown')
         if url and len(url) > 33:
             url = url[:30] + "..."
         
@@ -401,7 +402,7 @@ def save_results(results: List[dict], output_path: str, format_type: str = 'json
 
 
 def generate_html_report(results: List[dict], output_path: str):
-    """Generate clean HTML report without problematic emojis"""
+    """Generate clean HTML report"""
     html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -485,28 +486,24 @@ def generate_html_report(results: List[dict], output_path: str):
         if not result.get('success'):
             continue
             
-        url = result.get('final_url', result.get('url', ''))
+        url = result.get('final_url') or result.get('url', '')
         techs = result.get('technologies', [])
         
-        # Detect WAF and CDN
         waf_list = [t['name'] for t in techs if 'WAF' in t.get('category', '') or 'Protection' in t.get('category', '')]
         cdn_list = [t['name'] for t in techs if t.get('category') == 'CDN']
         
-        # WAF Section
         if waf_list:
             html += f'''<div class="card waf-card">
                 <h2 style="color:#ef4444; margin-top:0;">WAF Detected</h2>
                 <ul>{"".join([f"<li><strong>{w}</strong></li>" for w in waf_list])}</ul>
             </div>'''
         
-        # CDN Section
         if cdn_list:
             html += f'''<div class="card cdn-card">
                 <h2 style="color:#22d3ee; margin-top:0;">CDN Detected</h2>
                 <ul>{"".join([f"<li><strong>{c}</strong></li>" for c in cdn_list])}</ul>
             </div>'''
         
-        # Technologies
         html += f'''<div class="card">
             <h2 style="margin-top:0;">{url}</h2>
             <p><strong>Technologies Detected:</strong> {len(techs)} | <strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s</p>
