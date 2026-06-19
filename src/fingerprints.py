@@ -24,6 +24,44 @@ FINGERPRINTS = {
         "NestJS": {"patterns": [{"type": "script_content", "pattern": r"@nestjs|NestFactory"}], "category": "Backend Framework", "website": "https://nestjs.com"},
         "Fastify": {"patterns": [{"type": "script_content", "pattern": r"fastify"}], "category": "Backend Framework", "website": "https://www.fastify.io"},
     },
+    "microsoft": {
+        "Microsoft IIS": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"Microsoft-IIS"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"}
+            ],
+            "category": "Web Server",
+            "website": "https://www.iis.net/"
+        },
+        "ASP.NET": {
+            "patterns": [
+                {"type": "header", "pattern": r"x-aspnet-version"},
+                {"type": "header", "pattern": r"x-aspnetmvc-version"},
+                {"type": "header", "pattern": r"x-powered-by", "value": r"ASP\.NET"},
+                {"type": "html", "pattern": r"__VIEWSTATE|__EVENTVALIDATION|__VIEWSTATEGENERATOR"},
+                {"type": "html", "pattern": r"\.aspx"}
+            ],
+            "category": "Web Framework",
+            "website": "https://dotnet.microsoft.com/apps/aspnet"
+        },
+        "ASP.NET Web Forms": {
+            "patterns": [
+                {"type": "html", "pattern": r"__VIEWSTATE"},
+                {"type": "html", "pattern": r"__EVENTVALIDATION"},
+                {"type": "html", "pattern": r"WebResource\.axd|ScriptResource\.axd"}
+            ],
+            "category": "Web Framework (Legacy)",
+            "website": "https://learn.microsoft.com/en-us/previous-versions/aspnet/0z5x2h8y(v=vs.140)"
+        },
+        "Classic ASP": {
+            "patterns": [
+                {"type": "header", "pattern": r"server", "value": r"ASP"},
+                {"type": "html", "pattern": r"\.asp(\?|$|")"}
+            ],
+            "category": "Web Framework (Legacy)",
+            "website": "https://learn.microsoft.com/en-us/previous-versions/iis/6.0-sdk/ms525837(v=vs.90)"
+        }
+    },
     "ai_ml": {
         "OpenAI": {"patterns": [{"type": "script_content", "pattern": r"openai|gpt-"}], "category": "AI / ML", "website": "https://openai.com"},
         "Anthropic Claude": {"patterns": [{"type": "script_content", "pattern": r"anthropic|claude"}], "category": "AI / ML", "website": "https://www.anthropic.com"},
