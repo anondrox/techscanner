@@ -25,21 +25,21 @@ console = Console()
 def print_banner():
     banner = """
 [bold cyan]
-╔════════════════════════════════════════════════════════════════════════════╗
-║                                                                            ║
-║                    🔍 T E C H S C A N N E R 🔍 v2.0                       ║
-║                                                                            ║
-║              Advanced Technology Detection & Analysis Tool                 ║
-║                      + CVE Vulnerability Scanning                          ║
-║                      + HTML Reports & Stack Insights                       ║
-║                                                                            ║
-║                        [Design by anondrox]                                ║
-║                                                                            ║
-╚════════════════════════════════════════════════════════════════════════════╝
++==============================================================================+
+|                                                                              |
+|                    TECHSCANNER v2.0                                         |
+|                                                                              |
+|              Advanced Technology Detection & Analysis Tool                 |
+|                      + CVE Vulnerability Scanning                          |
+|                      + HTML Reports & Stack Insights                       |
+|                                                                              |
+|                        Design by anondrox                                    |
+|                                                                              |
++==============================================================================+
 
-    🛡️  Security is not a destination, it's a journey...
+    Security is not a destination, it's a journey...
     
-    Let's scan those technologies and find what's vulnerable! 🎭
+    Let's scan those technologies and find what's vulnerable!
 [/bold cyan]
     """
     console.print(banner)
@@ -189,7 +189,7 @@ def display_single_result(result: dict, show_details: bool = True, show_cves: bo
         stacks = result['tech_stacks']
         if stacks:
             stack_panel = "\n".join([
-                f"[bold cyan]{s['name']}[/bold cyan] — {s['description']}"
+                f"[bold cyan]{s['name']}[/bold cyan] - {s['description']}"
                 for s in stacks[:3]
             ])
             console.print(Panel(stack_panel, title="[bold]Detected Tech Stack(s)[/bold]", box=box.ROUNDED))
@@ -404,7 +404,7 @@ def save_results(results: List[dict], output_path: str, format_type: str = 'json
 
 
 def generate_html_report(results: List[dict], output_path: str):
-    """Generate improved HTML report with WAF/CDN and Security sections"""
+    """Generate clean HTML report without problematic emojis"""
     html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -474,22 +474,15 @@ def generate_html_report(results: List[dict], output_path: str):
         .confidence-high {{ color: #22c55e; font-weight: 600; }}
         .confidence-medium {{ color: #eab308; }}
         .confidence-low {{ color: #ef4444; }}
-        .badge {{
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 TechScanner v2.0</h1>
+            <h1>TechScanner v2.0</h1>
             <p style="color:#94a3b8; font-size:1.1rem;">Advanced Technology & Security Analysis Report</p>
         </div>
-    """
+'''
     
     for result in results:
         if not result.get('success'):
@@ -505,20 +498,20 @@ def generate_html_report(results: List[dict], output_path: str):
         # WAF Section
         if waf_list:
             html += f'''<div class="card waf-card">
-                <h2 style="color:#ef4444; margin-top:0;">🛡️ WAF Detected</h2>
+                <h2 style="color:#ef4444; margin-top:0;">WAF Detected</h2>
                 <ul>{"".join([f"<li><strong>{w}</strong></li>" for w in waf_list])}</ul>
             </div>'''
         
         # CDN Section
         if cdn_list:
             html += f'''<div class="card cdn-card">
-                <h2 style="color:#22d3ee; margin-top:0;">🌐 CDN Detected</h2>
+                <h2 style="color:#22d3ee; margin-top:0;">CDN Detected</h2>
                 <ul>{"".join([f"<li><strong>{c}</strong></li>" for c in cdn_list])}</ul>
             </div>'''
         
         # Technologies
         html += f'''<div class="card">
-            <h2 style="margin-top:0;">🌐 {url}</h2>
+            <h2 style="margin-top:0;">{url}</h2>
             <p><strong>Technologies Detected:</strong> {len(techs)} | <strong>Analysis Time:</strong> {result.get('analysis_time', 0)}s</p>
             
             <h3 style="margin-top:30px;">Detected Technologies</h3>
@@ -545,7 +538,7 @@ def generate_html_report(results: List[dict], output_path: str):
         </div>'''
     
     html += '''<div style="text-align:center; margin-top:60px; color:#64748b; font-size:0.9rem;">
-            Generated by TechScanner v2.0 • Made with ❤️ by anondrox
+            Generated by TechScanner v2.0 - Made by anondrox
         </div>
     </div>
 </body>
@@ -554,7 +547,7 @@ def generate_html_report(results: List[dict], output_path: str):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     
-    console.print(f"\n[green]✅ Beautiful HTML report saved to:[/green] {output_path}")
+    console.print(f"\n[green]HTML report saved to:[/green] {output_path}")
 
 
 async def run_analysis(urls: List[str], concurrency: int, show_details: bool, 
@@ -604,21 +597,21 @@ async def run_analysis(urls: List[str], concurrency: int, show_details: bool,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="TechScanner v2.0 - Advanced Tech Detection with CVE + HTML Reports + Stack Insights",
+        description="TechScanner v2.0 - Advanced Tech Detection with CVE + HTML Reports",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     parser.add_argument('url', nargs='?', help='URL to analyze')
     parser.add_argument('-f', '--file', help='File containing URLs (one per line)')
     parser.add_argument('-o', '--output', help='Output file path (.json, .csv, .html)')
-    parser.add_argument('-c', '--concurrency', type=int, default=2, help='Concurrent requests (default: 2 for stealth)')
+    parser.add_argument('-c', '--concurrency', type=int, default=2, help='Concurrent requests (default: 2)')
     parser.add_argument('--cve', action='store_true', help='Enable CVE vulnerability scanning')
     parser.add_argument('--brief', action='store_true', help='Show only technologies')
     parser.add_argument('--json', action='store_true', help='Output raw JSON to stdout')
     parser.add_argument('--html', help='Generate HTML report')
     parser.add_argument('--stack', action='store_true', help='Show detected tech stacks')
     parser.add_argument('--min-confidence', type=float, default=0.70, 
-                        help='Minimum confidence threshold to reduce false positives (default: 0.70)')
+                        help='Minimum confidence threshold (default: 0.70)')
     parser.add_argument('--no-banner', action='store_true', help='Hide banner')
     parser.add_argument('-v', '--version', action='version', version='TechScanner 2.0.0')
     
