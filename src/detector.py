@@ -35,7 +35,6 @@ class TechDetector:
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0",
         ]
 
-        # Common GraphQL types/fields for light Clairvoyance-style inference
         self.graphql_common_fields = [
             "id", "_id", "uuid", "name", "email", "username", "password", "token",
             "user", "users", "me", "profile", "account", "admin", "role",
@@ -88,8 +87,62 @@ class TechDetector:
             pass
         return None
 
+    def _check_pattern(self, pattern_info: Dict[str, Any], context: Dict[str, Any]) -> Tuple[bool, float]:
+        pattern_type = pattern_info.get('type', '')
+        pattern = pattern_info.get('pattern', '')
+        value_pattern = pattern_info.get('value', '')
+
+        if not pattern:
+            return False, 0.0
+
+        try:
+            if pattern_type == 'script':
+                for src in context.get('script_srcs', []):
+                    if re.search(pattern, str(src), re.IGNORECASE):
+                        return True, 0.90
+            elif pattern_type == 'script_content':
+                for content in context.get('script_contents', []):
+                    if re.search(pattern, str(content), re.IGNORECASE):
+                        return True, 0.85
+            elif pattern_type == 'css':
+                for css in context.get('css_hrefs', []):
+                    if re.search(pattern, str(css), re.IGNORECASE):
+                        return True, 0.88
+            elif pattern_type == 'html':
+                html = context.get('html', '')
+                if re.search(pattern, str(html), re.IGNORECASE):
+                    return True, 0.75
+            elif pattern_type == 'meta':
+                meta_tags = context.get('meta_tags', {})
+                if pattern in meta_tags:
+                    if value_pattern:
+                        if re.search(value_pattern, str(meta_tags[pattern]), re.IGNORECASE):
+                            return True, 0.95
+                    else:
+                        return True, 0.88
+            elif pattern_type == 'header':
+                headers = context.get('headers', {})
+                header_name = str(pattern).lower()
+                if header_name in headers:
+                    if value_pattern:
+                        if re.search(value_pattern, str(headers[header_name]), re.IGNORECASE):
+                            return True, 0.95
+                    else:
+                        return True, 0.82
+            elif pattern_type == 'cookie':
+                cookies = context.get('cookies', [])
+                for cookie in cookies:
+                    if re.search(pattern, str(cookie), re.IGNORECASE):
+                        return True, 0.80
+            elif pattern_type == 'url':
+                url = context.get('url', '')
+                if re.search(pattern, str(url), re.IGNORECASE):
+                    return True, 0.65
+        except re.error:
+            pass
+        return False, 0.0
+
     async def detect_graphql_introspection(self, session: aiohttp.ClientSession, base_url: str) -> Dict[str, Any]:
-        """GraphQL detection + Clairvoyance-lite (introspection + field inference)"""
         result = {
             "detected": False,
             "introspection_enabled": False,
@@ -100,7 +153,6 @@ class TechDetector:
 
         common_endpoints = ['/graphql', '/api/graphql', '/v1/graphql', '/query']
 
-        # Step 1: Try standard introspection
         introspection_query = """{ __schema { queryType { name } mutationType { name } types { name kind } } }"""
 
         for endpoint in common_endpoints:
@@ -119,7 +171,6 @@ class TechDetector:
                 result["schema_hints"] = types[:12]
                 return result
 
-        # Step 2: If introspection disabled → Light Clairvoyance (field inference)
         if self.enable_graphql_recon:
             for endpoint in common_endpoints:
                 full_url = urljoin(base_url, endpoint)
@@ -136,10 +187,8 @@ class TechDetector:
         return result
 
     async def _light_graphql_field_inference(self, session: aiohttp.ClientSession, endpoint: str) -> List[str]:
-        """Lightweight schema inference when introspection is disabled"""
         discovered = set()
 
-        # Test common root queries
         test_queries = [
             "{ __typename }",
             "{ me { id name email } }",
@@ -218,7 +267,6 @@ class TechDetector:
                 technologies = self._detect_technologies(context)
                 result["technologies"] = technologies
 
-                # GraphQL + Clairvoyance
                 has_graphql = any("graphql" in t["category"].lower() for t in technologies)
                 if has_graphql or any(p in html.lower() for p in ["/graphql", "graphql"]):
                     result["graphql"] = await self.detect_graphql_introspection(session, final_url)
